@@ -5,6 +5,9 @@ export const MSG = {
   C_INPUT:        0x02,
   C_CHAT:         0x03,
   C_PING:         0x04,
+  C_LIST_ROOMS:   0x05,
+  C_CREATE_ROOM:  0x06,
+  C_JOIN_ROOM:    0x07,
 
   // Server -> Client
   S_WELCOME:      0x10,
@@ -14,6 +17,7 @@ export const MSG = {
   S_EVENT:        0x14,
   S_PONG:         0x15,
   S_CHAT:         0x16,
+  S_ROOM_LIST:    0x17,
 };
 
 // Event subtypes

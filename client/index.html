@@ -22,7 +22,17 @@
     <div id="lobby">
       <h1>SOLDAT WEB</h1>
       <input type="text" id="player-name" placeholder="Your name" maxlength="16" value="Player">
-      <button id="btn-connect">CONNECT</button>
+      <div id="room-browser">
+        <div id="room-list-header">
+          <span>ROOMS</span>
+          <button id="btn-refresh">REFRESH</button>
+        </div>
+        <div id="room-list"></div>
+        <div id="room-create">
+          <input type="text" id="room-name" placeholder="Room name" maxlength="24" value="Game Room">
+          <button id="btn-create-room">CREATE ROOM</button>
+        </div>
+      </div>
       <p id="lobby-status"></p>
       <div id="controls-info">
         <p><b>A/D</b> Move &nbsp; <b>W</b> Jump &nbsp; <b>Space</b> Jet Boots</p>

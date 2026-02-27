@@ -125,20 +125,133 @@ html, body {
   border-color: #f44;
 }
 
-#btn-connect {
-  padding: 12px 40px;
-  font-size: 18px;
-  font-weight: bold;
+/* Room Browser */
+#room-browser {
+  margin: 20px auto;
+  width: 400px;
+  text-align: left;
+}
+
+#room-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
   letter-spacing: 2px;
+  color: #aaa;
+}
+
+#btn-refresh {
+  padding: 4px 12px;
+  font-size: 12px;
+  background: rgba(255,255,255,0.1);
+  color: #aaa;
+  border: 1px solid #555;
+  cursor: pointer;
+  letter-spacing: 1px;
+}
+
+#btn-refresh:hover {
+  border-color: #f44;
+  color: #fff;
+}
+
+#room-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #333;
+  background: rgba(0,0,0,0.4);
+}
+
+.room-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid #222;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.room-row:hover {
+  background: rgba(255, 68, 68, 0.15);
+}
+
+.room-row:last-child {
+  border-bottom: none;
+}
+
+.room-row.room-full {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.room-name {
+  font-size: 14px;
+  color: #ddd;
+}
+
+.room-players {
+  font-size: 13px;
+  color: #888;
+}
+
+.room-players.full {
+  color: #f44;
+}
+
+#room-list-empty {
+  padding: 20px;
+  text-align: center;
+  color: #555;
+  font-size: 13px;
+}
+
+#room-create {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+#room-name {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 14px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid #555;
+  color: #fff;
+  outline: none;
+}
+
+#room-name:focus {
+  border-color: #f44;
+}
+
+#btn-create-room {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 1px;
   background: #c33;
   color: #fff;
   border: none;
   cursor: pointer;
+  white-space: nowrap;
   transition: background 0.2s;
 }
 
-#btn-connect:hover {
+#btn-create-room:hover {
   background: #e44;
+}
+
+#room-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+#room-list::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 3px;
 }
 
 #lobby-status {

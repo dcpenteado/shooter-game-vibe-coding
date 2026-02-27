@@ -49,10 +49,13 @@ export class Game {
     this.input.bind();
   }
 
-  async connect(playerName) {
+  async connectToServer() {
     const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
     const url = `${protocol}//${location.host}`;
 
+    this.net.onRoomList = (data) => {
+      if (this.onRoomListUpdate) this.onRoomListUpdate(data);
+    };
     this.net.onWelcome = (data) => this._onWelcome(data);
     this.net.onSnapshot = (snap) => this._onSnapshot(snap);
     this.net.onEvent = (evt) => this._onEvent(evt);
@@ -60,7 +63,19 @@ export class Game {
     this.net.onPlayerLeave = (data) => this._onPlayerLeave(data);
     this.net.onDisconnect = () => this._onDisconnect();
 
-    await this.net.connect(url, playerName);
+    await this.net.connect(url);
+  }
+
+  joinRoom(playerName, roomId) {
+    this.net.joinRoom(playerName, roomId);
+  }
+
+  createRoom(playerName, roomName) {
+    this.net.createRoom(playerName, roomName);
+  }
+
+  refreshRooms() {
+    this.net.requestRoomList();
   }
 
   _onWelcome(data) {
@@ -104,6 +119,8 @@ export class Game {
 
     // Ping periodically
     setInterval(() => this.net.ping(), 2000);
+
+    if (this.onJoinedRoom) this.onJoinedRoom();
   }
 
   _onSnapshot(snap) {

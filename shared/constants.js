@@ -36,6 +36,9 @@ export const AMMO_PICKUP_AMOUNT = 30;       // reserve bullets per periodic pick
 export const PICKUP_COLLECT_RADIUS = 30;    // px distance to collect
 export const PICKUP_DESPAWN_TIME = 60000;   // ms until uncollected pickup despawns
 
+// Rooms
+export const MAX_PLAYERS_PER_ROOM = 16;
+
 // Networking
 export const NET_PORT = 3000;
 export const INTERPOLATION_DELAY = 100;   // ms behind server time

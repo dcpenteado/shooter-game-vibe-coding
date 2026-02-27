@@ -5,23 +5,23 @@ export class NetworkClient {
     this.ws = null;
     this.connected = false;
     this.playerId = null;
-    this.onWelcome = null;    // (data) => {}
-    this.onSnapshot = null;   // (snapshot) => {}
-    this.onEvent = null;      // (event) => {}
-    this.onPlayerJoin = null; // (data) => {}
-    this.onPlayerLeave = null;// (data) => {}
-    this.onDisconnect = null; // () => {}
+    this.onRoomList = null;    // (data) => {}
+    this.onWelcome = null;     // (data) => {}
+    this.onSnapshot = null;    // (snapshot) => {}
+    this.onEvent = null;       // (event) => {}
+    this.onPlayerJoin = null;  // (data) => {}
+    this.onPlayerLeave = null; // (data) => {}
+    this.onDisconnect = null;  // () => {}
     this.rtt = 0;
     this._pingTime = 0;
   }
 
-  connect(url, playerName) {
+  connect(url) {
     return new Promise((resolve, reject) => {
       this.ws = new WebSocket(url);
 
       this.ws.onopen = () => {
         this.connected = true;
-        this.send({ type: MSG.C_JOIN, name: playerName });
         resolve();
       };
 
@@ -41,6 +41,9 @@ export class NetworkClient {
 
   _handleMessage(msg) {
     switch (msg.type) {
+      case MSG.S_ROOM_LIST:
+        if (this.onRoomList) this.onRoomList(msg);
+        break;
       case MSG.S_WELCOME:
         this.playerId = msg.playerId;
         if (this.onWelcome) this.onWelcome(msg);
@@ -71,6 +74,18 @@ export class NetworkClient {
 
   sendInput(input) {
     this.send({ type: MSG.C_INPUT, ...input });
+  }
+
+  createRoom(playerName, roomName) {
+    this.send({ type: MSG.C_CREATE_ROOM, name: playerName, roomName });
+  }
+
+  joinRoom(playerName, roomId) {
+    this.send({ type: MSG.C_JOIN_ROOM, name: playerName, roomId });
+  }
+
+  requestRoomList() {
+    this.send({ type: MSG.C_LIST_ROOMS });
   }
 
   ping() {

@@ -1,9 +1,13 @@
 import { MSG } from '../shared/protocol.js';
-import { SERVER_TICK_RATE } from '../shared/constants.js';
+import { SERVER_TICK_RATE, MAX_PLAYERS_PER_ROOM } from '../shared/constants.js';
 import { ServerWorld } from './ServerWorld.js';
 
 export class GameRoom {
-  constructor(mapData, charDef, weaponDefs) {
+  constructor(id, name, mapData, charDef, weaponDefs, manager) {
+    this.id = id;
+    this.name = name;
+    this.maxPlayers = MAX_PLAYERS_PER_ROOM;
+    this.manager = manager;
     this.sessions = new Map(); // id -> PlayerSession
     this.world = new ServerWorld(mapData, charDef, weaponDefs);
     this.mapData = mapData;
@@ -26,6 +30,8 @@ export class GameRoom {
   }
 
   addPlayer(session) {
+    if (this.sessions.size >= this.maxPlayers) return false;
+
     session.name = session.name || 'Player';
     this.sessions.set(session.id, session);
 
@@ -53,7 +59,8 @@ export class GameRoom {
       }
     }
 
-    console.log(`Player ${session.name} (${session.id}) joined. Total: ${this.sessions.size}`);
+    console.log(`[${this.name}] Player ${session.name} (${session.id}) joined. Total: ${this.sessions.size}`);
+    return true;
   }
 
   removePlayer(sessionId) {
@@ -71,7 +78,11 @@ export class GameRoom {
       });
     }
 
-    console.log(`Player ${session.name} (${sessionId}) left. Total: ${this.sessions.size}`);
+    console.log(`[${this.name}] Player ${session.name} (${sessionId}) left. Total: ${this.sessions.size}`);
+
+    if (this.sessions.size === 0 && this.manager) {
+      this.manager.onRoomEmpty(this.id);
+    }
   }
 
   _tick() {
@@ -81,6 +92,9 @@ export class GameRoom {
         this.removePlayer(id);
       }
     }
+
+    // Auto-close empty room
+    if (this.sessions.size === 0) return;
 
     const sessionsArr = [...this.sessions.values()];
 
