@@ -1,0 +1,43 @@
+{
+  "id": "soldier",
+  "name": "Soldier",
+  "version": 1,
+  "physics": {
+    "width": 20,
+    "height": 36,
+    "moveSpeed": 280,
+    "moveAcceleration": 1800,
+    "airAcceleration": 600,
+    "jumpVelocity": -450,
+    "maxFallSpeed": 800,
+    "groundFriction": 0.85
+  },
+  "jetBoots": {
+    "thrustForce": -1800,
+    "maxFuel": 100,
+    "consumeRate": 35,
+    "regenRate": 25,
+    "regenDelay": 300
+  },
+  "health": {
+    "maxHP": 100
+  },
+  "combat": {
+    "primarySlot": "assault_rifle",
+    "secondarySlot": null
+  },
+  "rendering": {
+    "bodyColor": "#cc4444",
+    "headRadius": 7,
+    "bodyWidth": 16,
+    "bodyHeight": 28,
+    "limbLength": 12,
+    "limbWidth": 3
+  },
+  "ragdoll": {
+    "segments": ["head", "torso", "armL", "armR", "legL", "legR"],
+    "lingerTimeMs": 5000,
+    "friction": 0.7,
+    "bounce": 0.3
+  }
+}

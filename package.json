@@ -1,0 +1,14 @@
+{
+  "name": "soldat-web",
+  "version": "0.1.0",
+  "description": "2D multiplayer shooter inspired by Soldat",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "ws": "^8.18.0"
+  }
+}

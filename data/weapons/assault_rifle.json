@@ -1,0 +1,33 @@
+{
+  "id": "assault_rifle",
+  "name": "Assault Rifle",
+  "version": 1,
+  "category": "primary",
+  "projectile": {
+    "speed": 1800,
+    "damage": 18,
+    "spread": 0.04,
+    "gravity": false,
+    "lifetime": 600,
+    "radius": 2
+  },
+  "firing": {
+    "mode": "auto",
+    "rateOfFire": 600
+  },
+  "ammo": {
+    "magazineSize": 30,
+    "reserveMax": 120,
+    "reloadTimeMs": 2200
+  },
+  "recoil": {
+    "perShot": 0.015,
+    "recovery": 0.03,
+    "maxAccumulated": 0.12
+  },
+  "rendering": {
+    "tracerColor": "#ffdd44",
+    "tracerLength": 20,
+    "muzzleFlashDuration": 50
+  }
+}
