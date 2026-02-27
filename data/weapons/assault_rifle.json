@@ -28,7 +28,10 @@
   },
   "rendering": {
     "tracerColor": "#ffdd44",
-    "tracerLength": 20,
-    "muzzleFlashDuration": 50
+    "trailLength": 8,
+    "trailWidth": 3,
+    "trailOpacity": 0.5,
+    "glowRadius": 1.5,
+    "coreRadius": 0.5
   }
 }

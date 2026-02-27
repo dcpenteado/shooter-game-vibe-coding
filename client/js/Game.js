@@ -175,8 +175,14 @@ export class Game {
       }
     }
 
-    // Update projectiles and pickups from server
-    this.projectiles = snap.projectiles || [];
+    // Update projectiles, preserving client-side trail data
+    const incoming = snap.projectiles || [];
+    const oldById = new Map(this.projectiles.map(p => [p.id, p]));
+    for (const proj of incoming) {
+      const prev = oldById.get(proj.id);
+      if (prev?.trail) proj.trail = prev.trail;
+    }
+    this.projectiles = incoming;
     this.pickups = snap.pickups || [];
   }
 
@@ -357,11 +363,26 @@ export class Game {
     // Remove stale player graphics
     this.renderer.pruneInactivePlayers();
 
-    // Draw projectiles
+    // Draw projectiles with trails
     for (const proj of this.projectiles) {
       const wep = this.weaponDefs[proj.weapon] || {};
-      const color = wep.rendering?.tracerColor || '#ffdd44';
-      this.renderer.drawProjectile(proj.x, proj.y, proj.vx, proj.vy, color);
+      const r = wep.rendering || {};
+
+      // Build trail history
+      if (!proj.trail) proj.trail = [];
+      proj.trail.push({ x: proj.x, y: proj.y });
+      const maxTrailLen = r.trailLength ?? 10;
+      if (proj.trail.length > maxTrailLen) {
+        proj.trail.splice(0, proj.trail.length - maxTrailLen);
+      }
+
+      this.renderer.drawProjectile(proj.x, proj.y, proj.vx, proj.vy, proj.trail, {
+        color: r.tracerColor || '#ffdd44',
+        trailWidth: r.trailWidth ?? 3,
+        trailOpacity: r.trailOpacity ?? 0.6,
+        glowRadius: r.glowRadius ?? 6,
+        coreRadius: r.coreRadius ?? 1.5,
+      });
     }
 
     // Draw pickups

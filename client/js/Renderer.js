@@ -243,19 +243,41 @@ export class Renderer {
     }
   }
 
-  /** Draw all projectiles (call once per frame after clearFrame) */
-  drawProjectile(x, y, vx, vy, color = '#ffdd44') {
+  /** Draw projectile with configurable trail and glow */
+  drawProjectile(x, y, vx, vy, trail = [], opts = {}) {
+    const {
+      color = '#ffdd44',
+      trailWidth = 3,
+      trailOpacity = 0.6,
+      glowRadius = 6,
+      coreRadius = 1.5,
+    } = opts;
     const g = this.projGraphics;
-    const len = 14;
-    const speed = Math.sqrt(vx * vx + vy * vy) || 1;
-    const dx = (vx / speed) * len;
-    const dy = (vy / speed) * len;
 
-    g.moveTo(x - dx, y - dy);
-    g.lineTo(x, y);
-    g.stroke({ width: 2, color });
-    g.circle(x, y, 2);
-    g.fill('#ffffff');
+    // Draw trail segments (oldest to newest, fading in)
+    if (trail.length >= 2) {
+      for (let i = 1; i < trail.length; i++) {
+        const t = i / trail.length; // 0..1 (0 = oldest, 1 = newest)
+        const alpha = t * t * trailOpacity;
+        const width = Math.max(0.5, t * trailWidth);
+
+        g.moveTo(trail[i - 1].x, trail[i - 1].y);
+        g.lineTo(trail[i].x, trail[i].y);
+        g.stroke({ width, color, alpha });
+      }
+    }
+
+    // Glow around the projectile head
+    if (glowRadius > 0) {
+      g.circle(x, y, glowRadius);
+      g.fill({ color, alpha: 0.15 });
+      g.circle(x, y, glowRadius * 0.5);
+      g.fill({ color, alpha: 0.3 });
+    }
+
+    // Bright projectile core
+    g.circle(x, y, coreRadius);
+    g.fill({ color: '#ffffff', alpha: 0.9 });
   }
 
   /** Draw a particle */
