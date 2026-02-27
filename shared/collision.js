@@ -85,17 +85,17 @@ function polygonCenter(poly) {
  * Returns { t, x, y } or null
  */
 export function lineSegmentIntersection(ax, ay, bx, by, cx, cy, dx, dy) {
-  const denom = (dx - cx) * (ay - by) - (ax - bx) * (dy - cy);
+  const denom = (ax - bx) * (cy - dy) - (ay - by) * (cx - dx);
   if (Math.abs(denom) < 0.0001) return null;
 
-  const t = ((cx - ax) * (ay - by) - (ax - bx) * (cy - ay)) / denom;
-  const u = ((dx - cx) * (cy - ay) - (cx - ax) * (dy - cy)) / denom;
+  const t = ((ax - cx) * (cy - dy) - (ay - cy) * (cx - dx)) / denom;
+  const u = -((ax - bx) * (ay - cy) - (ay - by) * (ax - cx)) / denom;
 
   if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
     return {
-      t: u,
-      x: ax + u * (bx - ax),
-      y: ay + u * (by - ay),
+      t,
+      x: ax + t * (bx - ax),
+      y: ay + t * (by - ay),
     };
   }
   return null;
