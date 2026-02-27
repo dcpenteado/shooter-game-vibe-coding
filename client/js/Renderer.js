@@ -75,33 +75,320 @@ export class Renderer {
   get width() { return this.app.screen.width; }
   get height() { return this.app.screen.height; }
 
+  /** Parse hex color to {r,g,b} */
+  _hexToRgb(hex) {
+    const n = parseInt(hex.replace('#', ''), 16);
+    return { r: (n >> 16) & 0xff, g: (n >> 8) & 0xff, b: n & 0xff };
+  }
+
+  /** Lerp between two hex colors, return hex string */
+  _lerpColor(hex1, hex2, t) {
+    const a = this._hexToRgb(hex1);
+    const b = this._hexToRgb(hex2);
+    const r = Math.round(a.r + (b.r - a.r) * t);
+    const g = Math.round(a.g + (b.g - a.g) * t);
+    const bl = Math.round(a.b + (b.b - a.b) * t);
+    return `#${((r << 16) | (g << 8) | bl).toString(16).padStart(6, '0')}`;
+  }
+
+  /** Lighten a hex color by a factor (0-1) */
+  _lighten(hex, amount) {
+    const c = this._hexToRgb(hex);
+    const r = Math.min(255, c.r + Math.round((255 - c.r) * amount));
+    const g = Math.min(255, c.g + Math.round((255 - c.g) * amount));
+    const b = Math.min(255, c.b + Math.round((255 - c.b) * amount));
+    return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+  }
+
   /** Draw map polygons from map data (called once on load) */
   drawMap(mapData) {
     const g = this.mapGraphics;
     g.clear();
-
-    // Background
-    const bg = new Graphics();
-    bg.rect(0, 0, mapData.bounds.width, mapData.bounds.height);
-    bg.fill(mapData.background.bottom || '#302b63');
     this.layers.background.removeChildren();
+
+    const W = mapData.bounds.width;
+    const H = mapData.bounds.height;
+    const bg = new Graphics();
+
+    // --- Gradient sky background ---
+    const topColor = mapData.background.top || '#060610';
+    const bottomColor = mapData.background.bottom || '#12121e';
+    const gradientSteps = 32;
+    for (let i = 0; i < gradientSteps; i++) {
+      const t = i / gradientSteps;
+      const y = t * H;
+      const h = H / gradientSteps + 1;
+      bg.rect(0, y, W, h);
+      bg.fill(this._lerpColor(topColor, bottomColor, t));
+    }
+
+    // --- Stars ---
+    const starSeed = 42;
+    for (let i = 0; i < 120; i++) {
+      const sx = ((starSeed * (i + 1) * 7919) % W);
+      const sy = ((starSeed * (i + 1) * 6271) % (H * 0.5));
+      const sr = 0.5 + ((i * 13) % 3) * 0.4;
+      const sa = 0.15 + ((i * 7) % 5) * 0.08;
+      bg.circle(sx, sy, sr);
+      bg.fill({ color: '#ffffff', alpha: sa });
+    }
+
+    // --- Moon ---
+    bg.circle(2700, 120, 40);
+    bg.fill({ color: '#ddddcc', alpha: 0.08 });
+    bg.circle(2700, 120, 25);
+    bg.fill({ color: '#eeeedd', alpha: 0.12 });
+    bg.circle(2700, 120, 14);
+    bg.fill({ color: '#ffffee', alpha: 0.18 });
+
+    // --- Skyline buildings ---
+    if (mapData.skyline) {
+      const groundY = 1580;
+      for (const bld of mapData.skyline) {
+        const bx = bld.x;
+        const bw = bld.width;
+        const bh = bld.height;
+        const by = groundY - bh;
+
+        // Building body
+        bg.rect(bx, by, bw, bh);
+        bg.fill(bld.color || '#0e0e18');
+
+        // Subtle edge highlights
+        bg.rect(bx, by, 1, bh);
+        bg.fill({ color: '#ffffff', alpha: 0.02 });
+        bg.rect(bx + bw - 1, by, 1, bh);
+        bg.fill({ color: '#ffffff', alpha: 0.015 });
+
+        // Rooftop line
+        bg.rect(bx - 2, by, bw + 4, 2);
+        bg.fill({ color: '#ffffff', alpha: 0.03 });
+
+        // Windows
+        if (bld.windows) {
+          const winW = 4;
+          const winH = 5;
+          const gapX = 14;
+          const gapY = 18;
+          const cols = Math.floor((bw - 10) / gapX);
+          const rows = Math.floor((bh - 15) / gapY);
+          for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols; col++) {
+              // Deterministic pseudo-random: some windows lit, most dark
+              const hash = ((bx * 31 + col * 17 + row * 53) % 100);
+              if (hash < 25) {
+                const wx = bx + 8 + col * gapX;
+                const wy = by + 10 + row * gapY;
+                // Warm window glow
+                const warmth = hash < 10 ? '#ffcc66' : '#ffaa44';
+                const wa = 0.15 + (hash % 10) * 0.02;
+                bg.rect(wx, wy, winW, winH);
+                bg.fill({ color: warmth, alpha: wa });
+                // Tiny glow around window
+                bg.rect(wx - 1, wy - 1, winW + 2, winH + 2);
+                bg.fill({ color: warmth, alpha: wa * 0.3 });
+              }
+            }
+          }
+        }
+      }
+    }
+
     this.layers.background.addChild(bg);
 
-    // Collision polygons
+    // --- Collision polygons with depth ---
+    const skipIds = new Set(['wall_left', 'wall_right', 'ceiling']);
     for (const poly of mapData.collisionPolygons) {
       const verts = poly.vertices;
       if (verts.length < 3) continue;
+
+      const baseColor = poly.color || '#3a3a48';
+      const isGround = poly.id === 'ground';
+      const isRamp = poly.id?.startsWith('ramp');
+      const isPlatform = !isGround && !isRamp && !skipIds.has(poly.id);
+
+      // Draw polygon fill
       g.moveTo(verts[0].x, verts[0].y);
       for (let i = 1; i < verts.length; i++) {
         g.lineTo(verts[i].x, verts[i].y);
       }
       g.closePath();
-      g.fill(poly.color || '#4a3728');
+      g.fill(baseColor);
+
+      if (isPlatform) {
+        // Get bounding box
+        const xs = verts.map(v => v.x);
+        const ys = verts.map(v => v.y);
+        const minX = Math.min(...xs);
+        const maxX = Math.max(...xs);
+        const minY = Math.min(...ys);
+        const maxY = Math.max(...ys);
+        const pw = maxX - minX;
+        const ph = maxY - minY;
+
+        // Top highlight (light from above)
+        g.rect(minX, minY, pw, 2);
+        g.fill({ color: '#ffffff', alpha: 0.12 });
+
+        // Bottom shadow
+        g.rect(minX, maxY - 2, pw, 4);
+        g.fill({ color: '#000000', alpha: 0.3 });
+
+        // Left edge
+        g.rect(minX, minY, 1, ph);
+        g.fill({ color: '#ffffff', alpha: 0.05 });
+
+        // Right edge shadow
+        g.rect(maxX - 1, minY, 1, ph);
+        g.fill({ color: '#000000', alpha: 0.15 });
+
+        // Surface texture lines (subtle concrete cracks)
+        const lineCount = Math.floor(pw / 80);
+        for (let j = 1; j <= lineCount; j++) {
+          const lx = minX + (pw / (lineCount + 1)) * j;
+          g.moveTo(lx, minY + 3);
+          g.lineTo(lx, maxY - 2);
+          g.stroke({ width: 0.5, color: '#000000', alpha: 0.1 });
+        }
+      }
+
+      if (isGround) {
+        const gMinY = Math.min(...verts.map(v => v.y));
+
+        // Curb/sidewalk top edge
+        g.rect(0, gMinY, W, 3);
+        g.fill({ color: '#444450', alpha: 1 });
+        g.rect(0, gMinY, W, 1);
+        g.fill({ color: '#555560', alpha: 1 });
+
+        // Road lane markings (dashed yellow center line)
+        const laneY = gMinY + 40;
+        for (let dx = 80; dx < W; dx += 120) {
+          g.rect(dx, laneY, 50, 2);
+          g.fill({ color: '#888844', alpha: 0.2 });
+        }
+
+        // Subtle asphalt noise
+        for (let dx = 0; dx < W; dx += 60) {
+          for (let dy = gMinY + 10; dy < gMinY + 200; dy += 30) {
+            const noiseHash = ((dx * 7 + dy * 13) % 100);
+            if (noiseHash < 20) {
+              g.circle(dx + (noiseHash % 20), dy + (noiseHash % 10), 1 + (noiseHash % 2));
+              g.fill({ color: '#000000', alpha: 0.08 });
+            }
+          }
+        }
+      }
+
+      if (isRamp) {
+        // Top surface highlight
+        g.moveTo(verts[0].x, verts[0].y);
+        g.lineTo(verts[1].x, verts[1].y);
+        g.stroke({ width: 2, color: '#ffffff', alpha: 0.08 });
+      }
+
+      // Hidden walls/ceiling - just fill dark
+      if (skipIds.has(poly.id)) {
+        // Already drawn above
+      }
     }
 
-    // Decorations
+    // --- Decorations ---
     if (mapData.decorations) {
       for (const dec of mapData.decorations) {
+        if (dec.type === 'lamppost') {
+          const lx = dec.x;
+          const ly = dec.y;
+
+          // Pole
+          g.rect(lx - 1.5, ly - 80, 3, 80);
+          g.fill('#2a2a35');
+
+          // Arm extending right
+          g.rect(lx, ly - 80, 15, 2);
+          g.fill('#2a2a35');
+
+          // Lamp housing
+          g.roundRect(lx + 10, ly - 82, 8, 5, 1);
+          g.fill('#333340');
+
+          // Light cone (triangular glow below lamp)
+          g.moveTo(lx + 8, ly - 77);
+          g.lineTo(lx - 15, ly);
+          g.lineTo(lx + 35, ly);
+          g.closePath();
+          g.fill({ color: '#ffcc66', alpha: 0.03 });
+
+          // Light glow circles
+          g.circle(lx + 14, ly - 78, 12);
+          g.fill({ color: '#ffcc66', alpha: 0.06 });
+          g.circle(lx + 14, ly - 78, 6);
+          g.fill({ color: '#ffdd88', alpha: 0.1 });
+
+          // Bright point
+          g.circle(lx + 14, ly - 78, 2);
+          g.fill({ color: '#ffeeaa', alpha: 0.5 });
+        }
+
+        if (dec.type === 'crate') {
+          const cx = dec.x;
+          const cy = dec.y;
+          const cw = dec.width || 24;
+          const ch = dec.height || 20;
+          // Body
+          g.rect(cx, cy, cw, ch);
+          g.fill('#3a3530');
+          g.stroke({ width: 1, color: '#4a4540' });
+          // Cross straps
+          g.moveTo(cx, cy);
+          g.lineTo(cx + cw, cy + ch);
+          g.stroke({ width: 0.8, color: '#4a4540', alpha: 0.5 });
+          g.moveTo(cx + cw, cy);
+          g.lineTo(cx, cy + ch);
+          g.stroke({ width: 0.8, color: '#4a4540', alpha: 0.5 });
+          // Highlight top
+          g.rect(cx, cy, cw, 1);
+          g.fill({ color: '#ffffff', alpha: 0.06 });
+        }
+
+        if (dec.type === 'barrel') {
+          const bx = dec.x;
+          const by = dec.y;
+          // Body
+          g.roundRect(bx - 8, by, 16, 22, 3);
+          g.fill('#2a3530');
+          g.stroke({ width: 1, color: '#3a4540' });
+          // Bands
+          g.rect(bx - 8, by + 5, 16, 2);
+          g.fill({ color: '#3a4540', alpha: 0.6 });
+          g.rect(bx - 8, by + 15, 16, 2);
+          g.fill({ color: '#3a4540', alpha: 0.6 });
+          // Top highlight
+          g.rect(bx - 7, by + 1, 14, 1);
+          g.fill({ color: '#ffffff', alpha: 0.05 });
+        }
+
+        if (dec.type === 'dumpster') {
+          const dx = dec.x;
+          const dy = dec.y;
+          const dw = dec.width || 60;
+          const dh = dec.height || 35;
+          // Body
+          g.rect(dx, dy, dw, dh);
+          g.fill('#1e2e1e');
+          g.stroke({ width: 1, color: '#2a3a2a' });
+          // Lid (slightly wider)
+          g.rect(dx - 2, dy - 3, dw + 4, 5);
+          g.fill('#253525');
+          // Handle
+          g.rect(dx + dw / 2 - 8, dy - 5, 16, 2);
+          g.fill('#2a3a2a');
+          // Highlight
+          g.rect(dx, dy, dw, 1);
+          g.fill({ color: '#ffffff', alpha: 0.04 });
+        }
+
+        // Legacy rect type
         if (dec.type === 'rect') {
           g.rect(dec.x, dec.y, dec.width, dec.height);
           g.fill(dec.color || '#335533');

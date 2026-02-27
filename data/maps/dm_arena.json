@@ -1,13 +1,13 @@
 {
   "name": "DM Arena",
-  "version": 1,
+  "version": 2,
   "bounds": {
     "width": 3200,
     "height": 1800
   },
   "background": {
-    "top": "#0f0c29",
-    "bottom": "#1a1a3e"
+    "top": "#060610",
+    "bottom": "#12121e"
   },
   "spawnPoints": [
     { "x": 300, "y": 1400 },
@@ -20,6 +20,26 @@
     { "x": 1600, "y": 720, "weapon": "awm" },
     { "x": 275, "y": 870, "weapon": "awm" }
   ],
+  "skyline": [
+    { "x": 50,   "width": 120, "height": 500, "color": "#0e0e18", "windows": true },
+    { "x": 200,  "width": 80,  "height": 350, "color": "#0c0c15", "windows": true },
+    { "x": 320,  "width": 140, "height": 600, "color": "#101020", "windows": true },
+    { "x": 520,  "width": 100, "height": 420, "color": "#0d0d18", "windows": true },
+    { "x": 680,  "width": 160, "height": 550, "color": "#0f0f1a", "windows": true },
+    { "x": 900,  "width": 90,  "height": 380, "color": "#0c0c16", "windows": true },
+    { "x": 1040, "width": 130, "height": 650, "color": "#111122", "windows": true },
+    { "x": 1220, "width": 100, "height": 440, "color": "#0e0e19", "windows": true },
+    { "x": 1380, "width": 150, "height": 580, "color": "#101020", "windows": true },
+    { "x": 1580, "width": 110, "height": 480, "color": "#0d0d18", "windows": true },
+    { "x": 1750, "width": 140, "height": 620, "color": "#0f0f1c", "windows": true },
+    { "x": 1940, "width": 80,  "height": 360, "color": "#0c0c15", "windows": true },
+    { "x": 2060, "width": 160, "height": 540, "color": "#111120", "windows": true },
+    { "x": 2280, "width": 100, "height": 450, "color": "#0e0e18", "windows": true },
+    { "x": 2420, "width": 130, "height": 600, "color": "#101022", "windows": true },
+    { "x": 2600, "width": 90,  "height": 400, "color": "#0d0d17", "windows": true },
+    { "x": 2740, "width": 150, "height": 560, "color": "#0f0f1b", "windows": true },
+    { "x": 2940, "width": 120, "height": 480, "color": "#0e0e19", "windows": true }
+  ],
   "collisionPolygons": [
     {
       "id": "ground",
@@ -29,7 +49,7 @@
         { "x": 3200, "y": 1800 },
         { "x": 0, "y": 1800 }
       ],
-      "color": "#3a2a1a"
+      "color": "#222230"
     },
     {
       "id": "wall_left",
@@ -39,7 +59,7 @@
         { "x": 0, "y": 1800 },
         { "x": -50, "y": 1800 }
       ],
-      "color": "#2a2a2a"
+      "color": "#1a1a22"
     },
     {
       "id": "wall_right",
@@ -49,7 +69,7 @@
         { "x": 3250, "y": 1800 },
         { "x": 3200, "y": 1800 }
       ],
-      "color": "#2a2a2a"
+      "color": "#1a1a22"
     },
     {
       "id": "ceiling",
@@ -59,7 +79,7 @@
         { "x": 3200, "y": 0 },
         { "x": 0, "y": 0 }
       ],
-      "color": "#2a2a2a"
+      "color": "#0a0a12"
     },
     {
       "id": "platform_low_left",
@@ -69,7 +89,7 @@
         { "x": 600, "y": 1420 },
         { "x": 200, "y": 1420 }
       ],
-      "color": "#555566"
+      "color": "#3a3a48"
     },
     {
       "id": "platform_low_right",
@@ -79,7 +99,7 @@
         { "x": 3000, "y": 1420 },
         { "x": 2600, "y": 1420 }
       ],
-      "color": "#555566"
+      "color": "#3a3a48"
     },
     {
       "id": "platform_mid_left",
@@ -89,7 +109,7 @@
         { "x": 800, "y": 1190 },
         { "x": 400, "y": 1190 }
       ],
-      "color": "#556655"
+      "color": "#383845"
     },
     {
       "id": "platform_mid_right",
@@ -99,7 +119,7 @@
         { "x": 2800, "y": 1190 },
         { "x": 2400, "y": 1190 }
       ],
-      "color": "#556655"
+      "color": "#383845"
     },
     {
       "id": "platform_center",
@@ -109,7 +129,7 @@
         { "x": 1900, "y": 1090 },
         { "x": 1300, "y": 1090 }
       ],
-      "color": "#665555"
+      "color": "#3c3c4a"
     },
     {
       "id": "platform_high_left",
@@ -119,7 +139,7 @@
         { "x": 450, "y": 940 },
         { "x": 100, "y": 940 }
       ],
-      "color": "#556655"
+      "color": "#363642"
     },
     {
       "id": "platform_high_right",
@@ -129,7 +149,7 @@
         { "x": 3100, "y": 940 },
         { "x": 2750, "y": 940 }
       ],
-      "color": "#556655"
+      "color": "#363642"
     },
     {
       "id": "platform_top_center",
@@ -139,7 +159,7 @@
         { "x": 1800, "y": 790 },
         { "x": 1400, "y": 790 }
       ],
-      "color": "#666666"
+      "color": "#404050"
     },
     {
       "id": "ramp_left",
@@ -149,7 +169,7 @@
         { "x": 1150, "y": 1380 },
         { "x": 850, "y": 1580 }
       ],
-      "color": "#443322"
+      "color": "#333340"
     },
     {
       "id": "ramp_right",
@@ -159,12 +179,20 @@
         { "x": 2050, "y": 1380 },
         { "x": 2350, "y": 1580 }
       ],
-      "color": "#443322"
+      "color": "#333340"
     }
   ],
   "decorations": [
-    { "type": "rect", "x": 1560, "y": 1530, "width": 80, "height": 50, "color": "#332211" },
-    { "type": "rect", "x": 700, "y": 1530, "width": 40, "height": 50, "color": "#223311" },
-    { "type": "rect", "x": 2500, "y": 1530, "width": 40, "height": 50, "color": "#223311" }
+    { "type": "lamppost", "x": 400,  "y": 1380 },
+    { "type": "lamppost", "x": 1200, "y": 1580 },
+    { "type": "lamppost", "x": 1600, "y": 1050 },
+    { "type": "lamppost", "x": 2000, "y": 1580 },
+    { "type": "lamppost", "x": 2800, "y": 1380 },
+    { "type": "crate",    "x": 1560, "y": 1540, "width": 30, "height": 25 },
+    { "type": "crate",    "x": 1600, "y": 1550, "width": 24, "height": 20 },
+    { "type": "barrel",   "x": 700,  "y": 1555 },
+    { "type": "barrel",   "x": 2500, "y": 1555 },
+    { "type": "dumpster", "x": 150,  "y": 1540, "width": 60, "height": 35 },
+    { "type": "dumpster", "x": 3000, "y": 1540, "width": 60, "height": 35 }
   ]
 }
