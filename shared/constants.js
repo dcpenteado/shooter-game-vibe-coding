@@ -28,7 +28,7 @@ export const DEFAULT_JET_H_BOOST = 0.3;
 
 // Combat
 export const DEFAULT_MAX_HP = 100;
-export const RESPAWN_TIME_MS = 3000;
+export const RESPAWN_TIME_MS = 8000;
 
 // Pickups
 export const AMMO_PICKUP_INTERVAL = 20000;  // ms between periodic ammo spawns

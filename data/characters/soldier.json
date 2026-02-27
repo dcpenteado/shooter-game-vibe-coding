@@ -50,6 +50,11 @@
         "frameCount": 4,
         "speed": 0.15,
         "loop": true
+      },
+      "death": {
+        "frameCount": 1,
+        "speed": 0.12,
+        "loop": false
       }
     },
     "defaultAnimation": "idle"

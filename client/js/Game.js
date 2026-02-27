@@ -190,13 +190,6 @@ export class Game {
     if (evt.event === 'kill') {
       this.hud.addKill(evt.killerName, evt.victimName, evt.weapon);
 
-      // Spawn ragdoll
-      this.ragdolls.spawn(
-        evt.victimX, evt.victimY,
-        evt.dirX || 0, evt.dirY || 0,
-        evt.victimColor
-      );
-
       // Blood particles
       this.particles.emitBlood(evt.victimX, evt.victimY, evt.dirX || 0, evt.dirY || 0);
     }
@@ -245,6 +238,11 @@ export class Game {
   }
 
   _tick(dt) {
+    // Always update visual effects (even while dead)
+    this.particles.update(dt);
+    this.ragdolls.update(dt, this.mapPolygons);
+    this.renderer.updateDeathFragments(dt);
+
     if (this.localPlayer.state !== PLAYER_STATE.ALIVE) return;
 
     // Get input
@@ -310,9 +308,6 @@ export class Game {
       reload: rawInput.reload,
     });
 
-    // Update particles
-    this.particles.update(dt);
-    this.ragdolls.update(dt, this.mapPolygons);
   }
 
   _render(alpha) {
@@ -336,7 +331,7 @@ export class Game {
     for (const id of remoteIds) {
       if (id === this.net.playerId) continue;
       const state = this.interpolation.getState(id, renderTime);
-      if (state && state.state !== PLAYER_STATE.DEAD) {
+      if (state) {
         this.renderer.drawPlayer(
           this.renderer.layers.remotePlayers,
           { id, ...state },
@@ -344,7 +339,7 @@ export class Game {
         );
         this.renderer.markPlayerActive(id);
         // Jetpack smoke for remote players
-        if (state.jetting) {
+        if (state.state !== PLAYER_STATE.DEAD && state.jetting) {
           const facing = Math.cos(state.aimAngle || 0) >= 0 ? 1 : -1;
           this.particles.emitJetSmoke(state.x - facing * 8, state.y - 4);
         }
@@ -352,11 +347,13 @@ export class Game {
     }
 
     // Draw local player at interpolated position
-    if (this.localPlayer && this.localPlayer.state === PLAYER_STATE.ALIVE) {
+    if (this.localPlayer) {
       const physX = this.localPlayer.x;
       const physY = this.localPlayer.y;
-      this.localPlayer.x = renderX;
-      this.localPlayer.y = renderY;
+      if (renderX != null) {
+        this.localPlayer.x = renderX;
+        this.localPlayer.y = renderY;
+      }
       this.renderer.drawPlayer(
         this.renderer.layers.localPlayer,
         this.localPlayer,
@@ -366,7 +363,7 @@ export class Game {
       this.localPlayer.y = physY;
       this.renderer.markPlayerActive(this.localPlayer.id);
       // Jetpack smoke for local player
-      if (this.localPlayer.jetting) {
+      if (this.localPlayer.state === PLAYER_STATE.ALIVE && this.localPlayer.jetting) {
         const facing = Math.cos(this.localPlayer.aimAngle || 0) >= 0 ? 1 : -1;
         this.particles.emitJetSmoke(renderX - facing * 8, renderY - 4);
       }

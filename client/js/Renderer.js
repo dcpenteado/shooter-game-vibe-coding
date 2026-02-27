@@ -1,5 +1,6 @@
 import { Application, Graphics, Container, AnimatedSprite, Assets } from 'pixi.js';
 import { SpriteAnimator } from './SpriteAnimator.js';
+import { DeathFragments } from './DeathFragments.js';
 
 export class Renderer {
   constructor() {
@@ -14,6 +15,7 @@ export class Renderer {
     this.playerGfx = new Map(); // id -> { mode, ... }
     this.spriteAnimator = null;
     this.spritesReady = false;
+    this.deathFragments = new DeathFragments();
   }
 
   async init(canvas) {
@@ -160,15 +162,33 @@ export class Renderer {
 
     if (player.state === 1) {
       if (entry.mode === 'sprite') {
-        entry.container.visible = false;
+        // On first frame of death: hide sprite and spawn fragments
+        if (!entry.fragmentSpawned) {
+          entry.fragmentSpawned = true;
+          entry.container.visible = false;
+          // Get death texture and explode it into fragments
+          const deathTex = this.spriteAnimator?.textures.get('death')?.[0];
+          if (deathTex) {
+            this.deathFragments.spawn(
+              deathTex, player.x, player.y,
+              this.spriteAnimator.autoScale,
+              this.layers.particles
+            );
+          }
+        }
       } else {
         entry.graphics.clear();
       }
       return;
     }
 
-    if (entry.mode === 'sprite') {
+    // Reset fragment state on respawn
+    if (entry.fragmentSpawned) {
+      entry.fragmentSpawned = false;
       entry.container.visible = true;
+    }
+
+    if (entry.mode === 'sprite') {
       this.spriteAnimator.updatePlayerSprite(entry, player);
     } else {
       this._drawPlayerStickFigure(entry.graphics, player, isLocal);
@@ -447,6 +467,11 @@ export class Renderer {
       }
       this.playerGfx.delete(id);
     }
+  }
+
+  /** Update death fragment physics */
+  updateDeathFragments(dt) {
+    this.deathFragments.update(dt);
   }
 
   /** Apply camera offset to all world layers */

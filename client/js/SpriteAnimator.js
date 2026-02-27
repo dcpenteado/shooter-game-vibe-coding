@@ -3,6 +3,7 @@ import { Assets, Texture, AnimatedSprite, Container, Graphics } from 'pixi.js';
 const ANIM_STATE = {
   IDLE: 'idle',
   RUN: 'run',
+  DEATH: 'death',
 };
 
 export class SpriteAnimator {
@@ -92,7 +93,7 @@ export class SpriteAnimator {
   }
 
   getAnimationState(player) {
-    if (player.state === 1) return ANIM_STATE.IDLE;
+    if (player.state === 1) return ANIM_STATE.DEATH;
 
     if (player.onGround && player.moveDir !== 0 && Math.abs(player.vx) > 15) {
       return ANIM_STATE.RUN;
@@ -106,12 +107,25 @@ export class SpriteAnimator {
 
     const { container, sprite, armGraphics } = entry;
 
+    const newAnim = this.getAnimationState(player);
+
+    // Reset death state when player respawns
+    if (entry.deathDone && newAnim !== ANIM_STATE.DEATH) {
+      entry.deathDone = false;
+      sprite.onComplete = null;
+      container.visible = true;
+    }
+
+    // If death animation already finished, stay on last frame
+    if (entry.deathDone) {
+      return;
+    }
+
     // Position container at player world position
     container.x = player.x;
     container.y = player.y;
 
     // Animation state transition
-    const newAnim = this.getAnimationState(player);
     if (newAnim !== entry.currentAnim) {
       const textures = this.textures.get(newAnim);
       if (textures && textures.length > 0) {
@@ -121,7 +135,26 @@ export class SpriteAnimator {
         sprite.loop = this.config.animations[newAnim].loop !== false;
         sprite.play();
         entry.currentAnim = newAnim;
+
+        // Death animation: play once, then freeze on last frame
+        if (newAnim === ANIM_STATE.DEATH) {
+          sprite.loop = false;
+          sprite.onComplete = () => {
+            entry.deathDone = true;
+          };
+        }
+      } else if (newAnim === ANIM_STATE.DEATH) {
+        // No death textures available — hide immediately
+        entry.deathDone = true;
+        container.visible = false;
+        return;
       }
+    }
+
+    // Hide arm/weapon overlay during death
+    if (newAnim === ANIM_STATE.DEATH) {
+      armGraphics.clear();
+      return;
     }
 
     // Direction flip based on aim
