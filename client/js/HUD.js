@@ -2,6 +2,7 @@ export class HUD {
   constructor() {
     this.el = document.getElementById('hud');
     this.healthBar = document.getElementById('health-bar');
+    this.healthText = document.getElementById('health-text');
     this.fuelBar = document.getElementById('fuel-bar');
     this.ammoCurrent = document.getElementById('ammo-current');
     this.ammoReserve = document.getElementById('ammo-reserve');
@@ -14,18 +15,24 @@ export class HUD {
 
   update(player) {
     if (!player) return;
+
+    // Health bar
     const hpPct = Math.max(0, (player.hp / player.maxHP) * 100);
     this.healthBar.style.width = hpPct + '%';
+    this.healthText.textContent = Math.round(player.hp);
 
-    if (hpPct > 60) this.healthBar.style.background = '#3c3';
-    else if (hpPct > 30) this.healthBar.style.background = '#cc3';
-    else this.healthBar.style.background = '#c33';
+    this.healthBar.classList.remove('low', 'medium');
+    if (hpPct <= 30) this.healthBar.classList.add('low');
+    else if (hpPct <= 60) this.healthBar.classList.add('medium');
 
+    // Fuel bar
     const fuelPct = Math.max(0, (player.fuel / player.maxFuel) * 100);
     this.fuelBar.style.width = fuelPct + '%';
 
+    // Ammo
     if (player.ammo !== undefined) {
       this.ammoCurrent.textContent = player.ammo;
+      this.ammoCurrent.classList.toggle('low', player.ammo <= 5 && player.ammo > 0);
     }
     if (player.reserveAmmo !== undefined) {
       this.ammoReserve.textContent = player.reserveAmmo;
@@ -41,8 +48,18 @@ export class HUD {
   _renderKillfeed() {
     const now = Date.now();
     this.kills = this.kills.filter(k => now - k.time < 5000);
+
+    const skullSvg = '<svg class="kill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="7"/><circle cx="9" cy="9" r="1.5" fill="currentColor"/><circle cx="15" cy="9" r="1.5" fill="currentColor"/><path d="M10 14h4"/><path d="M9 18l3 3 3-3"/></svg>';
+
     this.killfeed.innerHTML = this.kills
-      .map(k => `<div><span style="color:#4f4">${k.killer}</span> → <span style="color:#f44">${k.victim}</span></div>`)
+      .map(k => {
+        const esc = (s) => {
+          const el = document.createElement('span');
+          el.textContent = s;
+          return el.innerHTML;
+        };
+        return `<div class="kill-entry"><span class="killer">${esc(k.killer)}</span>${skullSvg}<span class="victim">${esc(k.victim)}</span></div>`;
+      })
       .join('');
   }
 }

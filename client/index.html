@@ -10,12 +10,30 @@
   <div id="game-container">
     <canvas id="game-canvas"></canvas>
     <div id="hud" class="hidden">
-      <div id="hud-health">
-        <div id="health-bar"></div>
+      <div id="hud-bottom-left">
+        <div class="hud-bar-group">
+          <svg class="hud-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 7.65l.78.77L12 20.64l7.64-7.64.78-.77a5.4 5.4 0 0 0 0-7.65z"/></svg>
+          <div id="hud-health">
+            <div id="health-bar"></div>
+            <span id="health-text">100</span>
+          </div>
+        </div>
+        <div class="hud-bar-group">
+          <svg class="hud-icon fuel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L4 7v10l8 5 8-5V7z"/><path d="M12 22V12"/><path d="M20 7l-8 5-8-5"/></svg>
+          <div id="hud-fuel">
+            <div id="fuel-bar"></div>
+          </div>
+        </div>
       </div>
-      <div id="hud-ammo"><span id="ammo-current">30</span>/<span id="ammo-reserve">120</span></div>
-      <div id="hud-fuel">
-        <div id="fuel-bar"></div>
+      <div id="hud-bottom-right">
+        <div id="hud-ammo">
+          <svg class="hud-icon ammo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="4" height="14" rx="1"/><rect x="10" y="3" width="4" height="18" rx="1"/><rect x="17" y="7" width="4" height="10" rx="1"/></svg>
+          <div id="ammo-numbers">
+            <span id="ammo-current">30</span>
+            <span id="ammo-divider">/</span>
+            <span id="ammo-reserve">120</span>
+          </div>
+        </div>
       </div>
       <div id="hud-killfeed"></div>
     </div>

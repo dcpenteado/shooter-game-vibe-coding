@@ -29,65 +29,208 @@ html, body {
 /* HUD */
 #hud {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   pointer-events: none;
+  font-family: 'Segoe UI', Arial, sans-serif;
 }
 
 #hud.hidden { display: none; }
 
-#hud-health {
+/* HUD Icons */
+.hud-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+/* Bottom left: Health + Fuel */
+#hud-bottom-left {
   position: absolute;
   bottom: 20px;
   left: 20px;
-  width: 200px;
-  height: 16px;
-  background: rgba(0,0,0,0.6);
-  border: 1px solid #555;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hud-bar-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#hud-health {
+  width: 180px;
+  height: 14px;
+  background: rgba(0,0,0,0.55);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 7px;
+  overflow: hidden;
+  position: relative;
+}
+
+.hud-bar-group:first-child .hud-icon {
+  color: #e44;
 }
 
 #health-bar {
   width: 100%;
   height: 100%;
-  background: #c33;
-  transition: width 0.15s;
+  border-radius: 7px;
+  background: linear-gradient(90deg, #e44 0%, #f66 100%);
+  transition: width 0.2s ease, background 0.3s;
+  box-shadow: 0 0 8px rgba(255,60,60,0.3);
 }
 
-#hud-ammo {
+#health-bar.medium {
+  background: linear-gradient(90deg, #c90 0%, #eb0 100%);
+  box-shadow: 0 0 8px rgba(220,180,0,0.3);
+}
+
+#health-bar.low {
+  background: linear-gradient(90deg, #c22 0%, #e33 100%);
+  box-shadow: 0 0 12px rgba(255,30,30,0.5);
+  animation: healthPulse 0.8s ease-in-out infinite;
+}
+
+@keyframes healthPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+#health-text {
   position: absolute;
-  bottom: 20px;
-  right: 20px;
-  font-size: 20px;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
   font-weight: bold;
-  text-shadow: 1px 1px 2px #000;
+  color: rgba(255,255,255,0.8);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+  line-height: 1;
 }
 
 #hud-fuel {
-  position: absolute;
-  bottom: 44px;
-  left: 20px;
-  width: 200px;
+  width: 140px;
   height: 8px;
-  background: rgba(0,0,0,0.6);
-  border: 1px solid #555;
+  background: rgba(0,0,0,0.55);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.fuel-icon {
+  color: #4af;
 }
 
 #fuel-bar {
   width: 100%;
   height: 100%;
-  background: #39f;
-  transition: width 0.1s;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #28f 0%, #4af 100%);
+  transition: width 0.15s ease;
+  box-shadow: 0 0 6px rgba(60,150,255,0.3);
 }
 
+/* Bottom right: Ammo */
+#hud-bottom-right {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+}
+
+#hud-ammo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0,0,0,0.45);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: 6px 14px;
+}
+
+.ammo-icon {
+  color: #fa4;
+}
+
+#ammo-numbers {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+#ammo-current {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 0 8px rgba(255,170,60,0.3);
+  min-width: 28px;
+  text-align: right;
+}
+
+#ammo-current.low {
+  color: #f44;
+  text-shadow: 0 0 8px rgba(255,60,60,0.4);
+  animation: healthPulse 0.8s ease-in-out infinite;
+}
+
+#ammo-divider {
+  font-size: 14px;
+  color: #444;
+  margin: 0 1px;
+}
+
+#ammo-reserve {
+  font-size: 13px;
+  color: #666;
+}
+
+/* Killfeed */
 #hud-killfeed {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  font-size: 14px;
-  text-align: right;
-  text-shadow: 1px 1px 2px #000;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+}
+
+.kill-entry {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 12px;
+  animation: killSlideIn 0.3s ease;
+  white-space: nowrap;
+}
+
+@keyframes killSlideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.kill-entry .killer {
+  color: #6f6;
+  font-weight: 600;
+}
+
+.kill-entry .kill-icon {
+  width: 14px;
+  height: 14px;
+  color: #f44;
+  flex-shrink: 0;
+}
+
+.kill-entry .victim {
+  color: #f66;
+  font-weight: 600;
 }
 
 /* Lobby */
