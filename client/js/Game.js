@@ -207,7 +207,9 @@ export class Game {
   _onDisconnect() {
     this.running = false;
     this.hud.hide();
-    document.getElementById('lobby').style.display = 'block';
+    document.getElementById('lobby').style.display = 'flex';
+    document.getElementById('step-name').classList.remove('hidden');
+    document.getElementById('step-rooms').classList.add('hidden');
     document.getElementById('lobby-status').textContent = 'Disconnected from server.';
   }
 

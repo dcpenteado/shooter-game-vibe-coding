@@ -9,12 +9,17 @@ export class InputHandler {
     this.locked = false;
 
     this._onKeyDown = (e) => {
+      // Don't capture keys when typing in input fields
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
       this.keys.add(e.code);
       if (['Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyR'].includes(e.code)) {
         e.preventDefault();
       }
     };
-    this._onKeyUp = (e) => this.keys.delete(e.code);
+    this._onKeyUp = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      this.keys.delete(e.code);
+    };
     this._onMouseMove = (e) => {
       if (document.pointerLockElement === canvas) {
         this.mouseX += e.movementX;

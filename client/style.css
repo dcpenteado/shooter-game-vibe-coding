@@ -93,42 +93,150 @@ html, body {
 /* Lobby */
 #lobby {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
+  inset: 0;
   z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at center, rgba(30,10,10,0.95) 0%, rgba(0,0,0,0.98) 70%);
+}
+
+#lobby-panel {
+  width: 440px;
+  text-align: center;
 }
 
 #lobby h1 {
-  font-size: 48px;
-  letter-spacing: 6px;
-  margin-bottom: 30px;
+  font-size: 42px;
+  letter-spacing: 8px;
+  margin-bottom: 8px;
   color: #f44;
-  text-shadow: 0 0 20px rgba(255,60,60,0.5);
+  text-shadow: 0 0 30px rgba(255,60,60,0.4), 0 0 60px rgba(255,30,30,0.15);
+  font-weight: 900;
+}
+
+.hidden { display: none !important; }
+
+/* Step: Name */
+#step-name {
+  margin-top: 32px;
+}
+
+.step-label {
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: #666;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+#name-input-row {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 16px;
 }
 
 #player-name {
-  display: block;
-  margin: 0 auto 15px;
-  padding: 10px 20px;
+  padding: 10px 16px;
   font-size: 18px;
-  background: rgba(255,255,255,0.1);
-  border: 1px solid #555;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid #333;
+  border-radius: 4px;
   color: #fff;
   text-align: center;
   outline: none;
-  width: 250px;
+  width: 260px;
+  transition: border-color 0.2s;
 }
 
 #player-name:focus {
   border-color: #f44;
+  background: rgba(255,255,255,0.08);
+}
+
+#player-name::placeholder {
+  color: #555;
+}
+
+#btn-random-name {
+  padding: 0 12px;
+  font-size: 20px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid #333;
+  border-radius: 4px;
+  color: #aaa;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+  line-height: 1;
+}
+
+#btn-random-name:hover {
+  border-color: #f44;
+  color: #fff;
+}
+
+#btn-confirm-name {
+  padding: 10px 48px;
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  background: #c33;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s;
+}
+
+#btn-confirm-name:hover:not(:disabled) {
+  background: #e44;
+}
+
+#btn-confirm-name:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+/* Step: Rooms */
+#step-rooms {
+  margin-top: 24px;
+  animation: fadeSlideIn 0.3s ease;
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+#player-greeting {
+  font-size: 14px;
+  color: #777;
+  margin-bottom: 20px;
+}
+
+#greeting-name {
+  color: #f44;
+  font-weight: bold;
+}
+
+#btn-change-name {
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-left: 6px;
+}
+
+#btn-change-name:hover {
+  color: #aaa;
 }
 
 /* Room Browser */
 #room-browser {
-  margin: 20px auto;
-  width: 400px;
+  width: 100%;
   text-align: left;
 }
 
@@ -136,20 +244,30 @@ html, body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
-  font-size: 14px;
-  letter-spacing: 2px;
-  color: #aaa;
+  margin-bottom: 6px;
+  padding: 0 2px;
+}
+
+#room-list-header span {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: #555;
 }
 
 #btn-refresh {
-  padding: 4px 12px;
-  font-size: 12px;
-  background: rgba(255,255,255,0.1);
-  color: #aaa;
-  border: 1px solid #555;
+  width: 28px;
+  height: 28px;
+  font-size: 16px;
+  background: none;
+  color: #555;
+  border: 1px solid #333;
+  border-radius: 4px;
   cursor: pointer;
-  letter-spacing: 1px;
+  transition: color 0.2s, border-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 }
 
 #btn-refresh:hover {
@@ -158,24 +276,25 @@ html, body {
 }
 
 #room-list {
-  max-height: 200px;
+  max-height: 220px;
   overflow-y: auto;
-  border: 1px solid #333;
-  background: rgba(0,0,0,0.4);
+  border: 1px solid #282828;
+  border-radius: 4px;
+  background: rgba(0,0,0,0.5);
 }
 
 .room-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
-  border-bottom: 1px solid #222;
+  padding: 10px 14px;
+  border-bottom: 1px solid #1a1a1a;
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .room-row:hover {
-  background: rgba(255, 68, 68, 0.15);
+  background: rgba(255, 68, 68, 0.1);
 }
 
 .room-row:last-child {
@@ -183,18 +302,23 @@ html, body {
 }
 
 .room-row.room-full {
-  opacity: 0.4;
+  opacity: 0.35;
   cursor: default;
+}
+
+.room-row.room-full:hover {
+  background: none;
 }
 
 .room-name {
   font-size: 14px;
-  color: #ddd;
+  color: #ccc;
 }
 
 .room-players {
-  font-size: 13px;
-  color: #888;
+  font-size: 12px;
+  color: #666;
+  font-variant-numeric: tabular-nums;
 }
 
 .room-players.full {
@@ -202,26 +326,32 @@ html, body {
 }
 
 #room-list-empty {
-  padding: 20px;
+  padding: 24px;
   text-align: center;
-  color: #555;
+  color: #444;
   font-size: 13px;
 }
 
 #room-create {
   display: flex;
-  gap: 8px;
-  margin-top: 10px;
+  gap: 6px;
+  margin-top: 8px;
 }
 
 #room-name {
   flex: 1;
   padding: 8px 12px;
   font-size: 14px;
-  background: rgba(255,255,255,0.1);
-  border: 1px solid #555;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid #282828;
+  border-radius: 4px;
   color: #fff;
   outline: none;
+  transition: border-color 0.2s;
+}
+
+#room-name::placeholder {
+  color: #444;
 }
 
 #room-name:focus {
@@ -230,12 +360,13 @@ html, body {
 
 #btn-create-room {
   padding: 8px 16px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: bold;
   letter-spacing: 1px;
   background: #c33;
   color: #fff;
   border: none;
+  border-radius: 4px;
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.2s;
@@ -246,31 +377,44 @@ html, body {
 }
 
 #room-list::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
+}
+
+#room-list::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 #room-list::-webkit-scrollbar-thumb {
-  background: #444;
-  border-radius: 3px;
+  background: #333;
+  border-radius: 2px;
 }
 
+/* Status */
 #lobby-status {
-  margin-top: 15px;
-  font-size: 14px;
-  color: #aaa;
+  margin-top: 16px;
+  font-size: 13px;
+  color: #666;
+  min-height: 20px;
 }
 
+#lobby-status.error {
+  color: #f44;
+}
+
+/* Controls */
 #controls-info {
-  margin-top: 25px;
-  font-size: 13px;
-  color: #777;
-  line-height: 1.8;
+  margin-top: 24px;
+  font-size: 12px;
+  color: #444;
+  line-height: 2;
+  border-top: 1px solid #1a1a1a;
+  padding-top: 16px;
 }
 
 #controls-info b {
-  color: #aaa;
-  background: rgba(255,255,255,0.08);
+  color: #666;
+  background: rgba(255,255,255,0.04);
   padding: 2px 6px;
   border-radius: 3px;
-  font-size: 12px;
+  font-size: 11px;
 }

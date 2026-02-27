@@ -20,23 +20,45 @@
       <div id="hud-killfeed"></div>
     </div>
     <div id="lobby">
-      <h1>SOLDAT WEB</h1>
-      <input type="text" id="player-name" placeholder="Your name" maxlength="16" value="Player">
-      <div id="room-browser">
-        <div id="room-list-header">
-          <span>ROOMS</span>
-          <button id="btn-refresh">REFRESH</button>
+      <div id="lobby-panel">
+        <h1>SOLDAT WEB</h1>
+
+        <!-- Step 1: Enter name -->
+        <div id="step-name">
+          <p class="step-label">ENTER YOUR NAME</p>
+          <div id="name-input-row">
+            <input type="text" id="player-name" placeholder="Your name" maxlength="16">
+            <button id="btn-random-name" title="Random name">&#x1f3b2;</button>
+          </div>
+          <button id="btn-confirm-name" disabled>CONTINUE</button>
         </div>
-        <div id="room-list"></div>
-        <div id="room-create">
-          <input type="text" id="room-name" placeholder="Room name" maxlength="24" value="Game Room">
-          <button id="btn-create-room">CREATE ROOM</button>
+
+        <!-- Step 2: Room browser (hidden until name is set) -->
+        <div id="step-rooms" class="hidden">
+          <div id="player-greeting">
+            Playing as <span id="greeting-name"></span>
+            <button id="btn-change-name">change</button>
+          </div>
+
+          <div id="room-browser">
+            <div id="room-list-header">
+              <span>ROOMS</span>
+              <button id="btn-refresh">&#x21bb;</button>
+            </div>
+            <div id="room-list"></div>
+            <div id="room-create">
+              <input type="text" id="room-name" placeholder="Room name" maxlength="24">
+              <button id="btn-create-room">+ CREATE</button>
+            </div>
+          </div>
+
+          <div id="controls-info">
+            <p><b>A/D</b> Move &nbsp; <b>W</b> Jump &nbsp; <b>Space</b> Jet Boots</p>
+            <p><b>Mouse</b> Aim &nbsp; <b>Click</b> Shoot &nbsp; <b>R</b> Reload</p>
+          </div>
         </div>
-      </div>
-      <p id="lobby-status"></p>
-      <div id="controls-info">
-        <p><b>A/D</b> Move &nbsp; <b>W</b> Jump &nbsp; <b>Space</b> Jet Boots</p>
-        <p><b>Mouse</b> Aim &nbsp; <b>Click</b> Shoot &nbsp; <b>R</b> Reload</p>
+
+        <p id="lobby-status"></p>
       </div>
     </div>
   </div>
