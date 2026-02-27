@@ -5,6 +5,8 @@ import {
   AMMO_PICKUP_INTERVAL, AMMO_PICKUP_AMOUNT,
   PICKUP_COLLECT_RADIUS, PICKUP_DESPAWN_TIME,
   WEAPON_PICKUP_RESPAWN_TIME, WEAPON_PICKUP_COLLECT_RADIUS,
+  MINE_MAX_PER_SPAWN, MINE_PLACEMENT_COOLDOWN, MINE_ACTIVATION_DELAY,
+  MINE_TRIGGER_RADIUS, MINE_DAMAGE, MINE_LIFETIME,
 } from '../shared/constants.js';
 
 export class ServerWorld {
@@ -19,6 +21,8 @@ export class ServerWorld {
     this.pickups = [];
     this.nextPickupId = 1;
     this.pickupSpawnTimer = AMMO_PICKUP_INTERVAL;
+    this.mines = [];
+    this.nextMineId = 1;
     this.events = []; // events generated this tick
     this.tick = 0;
 
@@ -134,6 +138,13 @@ export class ServerWorld {
             }
           }
 
+          // Mine placement (rising edge)
+          if (entity.mineCooldown > 0) entity.mineCooldown -= CLIENT_TICK_DT * 1000;
+          if (inp.placeMine && !entity._prevPlaceMine && entity.mines > 0 && entity.mineCooldown <= 0) {
+            this._placeMine(entity);
+          }
+          entity._prevPlaceMine = inp.placeMine;
+
           session.lastProcessedSeq = inp.seq;
         }
       } else {
@@ -143,7 +154,9 @@ export class ServerWorld {
         stepPlayer(entity, idle, SERVER_TICK_DT, this.mapPolygons, this.mapData.bounds);
 
         if (entity.fireCooldown > 0) entity.fireCooldown -= SERVER_TICK_DT;
+        if (entity.mineCooldown > 0) entity.mineCooldown -= SERVER_TICK_DT * 1000;
         entity._prevFire = false;
+        entity._prevPlaceMine = false;
         if (entity.reloading) {
           entity.reloadTimer -= SERVER_TICK_DT * 1000;
           if (entity.reloadTimer <= 0) {
@@ -175,6 +188,38 @@ export class ServerWorld {
 
       if (!result.alive) {
         this.projectiles.splice(i, 1);
+      }
+    }
+
+    // Update mines
+    const triggerRadiusSq = MINE_TRIGGER_RADIUS * MINE_TRIGGER_RADIUS;
+    for (let i = this.mines.length - 1; i >= 0; i--) {
+      const mine = this.mines[i];
+      mine.lifetime -= SERVER_TICK_DT * 1000;
+      if (mine.lifetime <= 0) {
+        this.mines.splice(i, 1);
+        continue;
+      }
+
+      if (mine.state === 'idle') {
+        // Check proximity to enemy players
+        for (const player of playersArr) {
+          if (player.id === mine.ownerId) continue;
+          const dx = player.x - mine.x;
+          const dy = player.y - mine.y;
+          if (dx * dx + dy * dy < triggerRadiusSq) {
+            mine.state = 'triggered';
+            mine.triggerTimer = MINE_ACTIVATION_DELAY;
+            mine.triggeredBy = player.id;
+            break;
+          }
+        }
+      } else if (mine.state === 'triggered') {
+        mine.triggerTimer -= SERVER_TICK_DT * 1000;
+        if (mine.triggerTimer <= 0) {
+          this._applyMineExplosion(mine);
+          this.mines.splice(i, 1);
+        }
       }
     }
 
@@ -434,6 +479,98 @@ export class ServerWorld {
     }
   }
 
+  _placeMine(entity) {
+    const mine = {
+      id: this.nextMineId++,
+      x: entity.x,
+      y: entity.y + entity.height / 2, // at player's feet
+      ownerId: entity.id,
+      state: 'idle',
+      triggerTimer: 0,
+      triggeredBy: null,
+      lifetime: MINE_LIFETIME,
+    };
+    this.mines.push(mine);
+    entity.mines--;
+    entity.mineCooldown = MINE_PLACEMENT_COOLDOWN;
+    this.events.push({
+      event: 'mine_place',
+      playerId: entity.id,
+      x: mine.x,
+      y: mine.y,
+    });
+  }
+
+  _applyMineExplosion(mine) {
+    const victim = this.players.get(mine.triggeredBy);
+
+    this.events.push({
+      event: 'mine_explode',
+      x: mine.x,
+      y: mine.y,
+      ownerId: mine.ownerId,
+    });
+
+    if (!victim || victim.state !== PLAYER_STATE.ALIVE) return;
+
+    victim.hp -= MINE_DAMAGE;
+
+    // Strong vertical knockback (launch upward)
+    victim.vy = -650;
+    // Horizontal push away from mine center
+    const dx = victim.x - mine.x;
+    victim.vx += (dx >= 0 ? 1 : -1) * 200;
+    victim.onGround = false;
+
+    if (victim.hp <= 0) {
+      victim.hp = 0;
+      victim.state = PLAYER_STATE.DEAD;
+      victim.respawnTimer = RESPAWN_TIME_MS;
+      victim.deaths++;
+
+      const killer = this.players.get(mine.ownerId);
+      if (killer && killer.id !== victim.id) killer.kills++;
+      this.events.push({
+        event: 'kill',
+        killerId: mine.ownerId,
+        killerName: killer ? killer.name : '?',
+        victimId: victim.id,
+        victimName: victim.name,
+        victimX: victim.x,
+        victimY: victim.y,
+        victimColor: victim.color,
+        dirX: 0,
+        dirY: -1,
+        weapon: 'mine',
+      });
+
+      // Drop victim's weapon/ammo on death
+      if (victim.weapon !== 'assault_rifle') {
+        this.pickups.push({
+          id: this.nextPickupId++,
+          type: 'weapon',
+          weaponId: victim.weapon,
+          amount: 0,
+          x: victim.x,
+          y: victim.y - 20,
+          lifetime: PICKUP_DESPAWN_TIME,
+        });
+      } else {
+        const dropAmount = victim.ammo + victim.reserveAmmo;
+        if (dropAmount > 0) {
+          this.pickups.push({
+            id: this.nextPickupId++,
+            type: 'ammo',
+            amount: dropAmount,
+            x: victim.x,
+            y: victim.y - 20,
+            lifetime: PICKUP_DESPAWN_TIME,
+          });
+        }
+      }
+    }
+  }
+
   _getWeaponDef(entity) {
     return this.weaponDefs[entity.weapon] || null;
   }
@@ -458,6 +595,11 @@ export class ServerWorld {
       entity.ammo = wep.ammo.magazineSize;
       entity.reserveAmmo = wep.ammo.reserveMax;
     }
+
+    // Reset mines
+    entity.mines = MINE_MAX_PER_SPAWN;
+    entity.mineCooldown = 0;
+    entity._prevPlaceMine = false;
 
     this.events.push({
       event: 'respawn',
@@ -491,6 +633,7 @@ export class ServerWorld {
         kills: e.kills,
         deaths: e.deaths,
         weapon: e.weapon,
+        mines: e.mines,
       });
     }
 
@@ -513,6 +656,14 @@ export class ServerWorld {
       weaponId: p.weaponId || null,
     }));
 
-    return { players, projectiles, pickups, tick: this.tick };
+    const mines = this.mines.map(m => ({
+      id: m.id,
+      x: Math.round(m.x),
+      y: Math.round(m.y),
+      ownerId: m.ownerId,
+      state: m.state,
+    }));
+
+    return { players, projectiles, pickups, mines, tick: this.tick };
   }
 }

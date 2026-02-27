@@ -77,6 +77,42 @@ export class ParticleSystem {
     }
   }
 
+  /** Emit mine explosion particles */
+  emitExplosion(x, y) {
+    // Orange/yellow burst
+    for (let i = 0; i < 20; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const spd = 80 + Math.random() * 250;
+      this.particles.push({
+        x, y,
+        vx: Math.cos(angle) * spd,
+        vy: Math.sin(angle) * spd - 60,
+        life: 300 + Math.random() * 400,
+        maxLife: 700,
+        size: 3 + Math.random() * 3,
+        color: Math.random() > 0.5 ? '#ff6600' : '#ffcc00',
+        gravity: true,
+      });
+    }
+    // Heavy smoke cloud
+    for (let i = 0; i < 25; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const spd = 15 + Math.random() * 60;
+      this.particles.push({
+        x: x + (Math.random() - 0.5) * 20,
+        y: y + (Math.random() - 0.5) * 10,
+        vx: Math.cos(angle) * spd,
+        vy: -20 - Math.random() * 80,
+        life: 800 + Math.random() * 1200,
+        maxLife: 2000,
+        size: 6 + Math.random() * 8,
+        color: Math.random() > 0.3 ? '#444444' : '#666655',
+        gravity: false,
+        maxAlpha: 0.5 + Math.random() * 0.2,
+      });
+    }
+  }
+
   /** Emit muzzle flash */
   emitMuzzleFlash(x, y) {
     this.emit(x, y, 2, {

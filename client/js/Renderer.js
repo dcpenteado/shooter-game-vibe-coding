@@ -772,6 +772,57 @@ export class Renderer {
     g.fill('#555555');
   }
 
+  /** Draw a mine on the ground */
+  drawMine(x, y, state, isOwn) {
+    const g = this.pickupGraphics;
+    const now = Date.now();
+
+    // Mine body — flat disc shape
+    const rx = 10;  // horizontal radius
+    const ry = 5;   // vertical radius (flattened)
+
+    if (state === 'triggered') {
+      // Fast red/yellow blink
+      const blink = Math.floor(now / 80) % 2 === 0;
+      const blinkColor = blink ? '#ff4400' : '#ffcc00';
+
+      // Intense glow
+      g.ellipse(x, y, rx + 8, ry + 8);
+      g.fill({ color: blinkColor, alpha: 0.25 });
+      g.ellipse(x, y, rx + 4, ry + 4);
+      g.fill({ color: blinkColor, alpha: 0.15 });
+
+      // Body
+      g.ellipse(x, y, rx, ry);
+      g.fill('#555555');
+      g.stroke({ width: 1, color: blinkColor });
+
+      // Center light
+      g.circle(x, y - 1, 3);
+      g.fill({ color: blinkColor, alpha: 0.9 });
+    } else {
+      // Idle state — subtle red pulse
+      const pulseAlpha = 0.4 + Math.sin(now * 0.004) * 0.2;
+
+      // Subtle glow
+      g.ellipse(x, y, rx + 4, ry + 4);
+      g.fill({ color: '#ff2200', alpha: 0.06 });
+
+      // Body
+      g.ellipse(x, y, rx, ry);
+      g.fill(isOwn ? '#4a4a4a' : '#555555');
+      g.stroke({ width: 1, color: '#666666' });
+
+      // Metal rim detail
+      g.ellipse(x, y, rx - 2, ry - 1);
+      g.stroke({ width: 0.5, color: '#777777' });
+
+      // Center indicator light (pulsing red)
+      g.circle(x, y - 1, 2);
+      g.fill({ color: '#ff2200', alpha: pulseAlpha });
+    }
+  }
+
   /** Draw crosshair at screen position */
   drawCrosshair(screenX, screenY) {
     const g = this.crosshairGraphics;

@@ -38,6 +38,14 @@ export const PICKUP_DESPAWN_TIME = 60000;   // ms until uncollected pickup despa
 export const WEAPON_PICKUP_RESPAWN_TIME = 30000; // ms until weapon pickup respawns after collection
 export const WEAPON_PICKUP_COLLECT_RADIUS = 35;  // px distance to collect weapon pickup
 
+// Mines
+export const MINE_MAX_PER_SPAWN = 3;           // mines per life
+export const MINE_PLACEMENT_COOLDOWN = 1000;   // ms between placements
+export const MINE_ACTIVATION_DELAY = 500;      // ms delay after trigger before exploding
+export const MINE_TRIGGER_RADIUS = 30;         // px distance to trigger
+export const MINE_DAMAGE = 80;                 // damage on explosion
+export const MINE_LIFETIME = 60000;            // ms until auto-despawn
+
 // Rooms
 export const MAX_PLAYERS_PER_ROOM = 16;
 

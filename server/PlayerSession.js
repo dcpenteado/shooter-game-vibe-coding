@@ -37,6 +37,7 @@ export class PlayerSession {
           aimAngle: msg.aimAngle || 0,
           fire: !!msg.fire,
           reload: !!msg.reload,
+          placeMine: !!msg.placeMine,
         });
         // Cap queue size to prevent memory issues
         if (this.inputQueue.length > 60) {

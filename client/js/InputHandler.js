@@ -12,7 +12,7 @@ export class InputHandler {
       // Don't capture keys when typing in input fields
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
       this.keys.add(e.code);
-      if (['Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyR'].includes(e.code)) {
+      if (['Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyR', 'KeyQ'].includes(e.code)) {
         e.preventDefault();
       }
     };
@@ -70,6 +70,7 @@ export class InputHandler {
     const jet = this.keys.has('Space');
     const jump = this.keys.has('KeyW') || this.keys.has('ArrowUp');
     const reload = this.keys.has('KeyR');
+    const placeMine = this.keys.has('KeyQ');
 
     // Aim angle: from player screen center to mouse
     const worldMouseX = this.mouseX + cameraX;
@@ -82,6 +83,7 @@ export class InputHandler {
       jump,
       fire: this.mouseDown,
       reload,
+      placeMine,
       aimAngle: 0, // set by Game with proper player position
       mouseWorldX: worldMouseX,
       mouseWorldY: worldMouseY,

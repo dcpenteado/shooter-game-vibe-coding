@@ -195,6 +195,12 @@ export function createPlayerEntity(id, charDef, spawnX, spawnY) {
     reloadTimer: 0,
     fireCooldown: 0,
 
+    // Mines
+    mines: 3,       // current mine count (reset on respawn)
+    minesMax: 3,
+    mineCooldown: 0,
+    _prevPlaceMine: false,
+
     // Internal
     _prevFire: false,
     _tickTime: 0,

@@ -11,6 +11,7 @@ export class HUD {
     this.reloadBar = document.getElementById('reload-bar');
     this.reloadBarFill = document.getElementById('reload-bar-fill');
     this.weaponName = document.getElementById('weapon-name');
+    this.mineCount = document.getElementById('mine-count');
     this.kills = [];
     this._lastLbHtml = '';
   }
@@ -47,6 +48,12 @@ export class HUD {
     // Weapon name
     if (this.weaponName && player.weaponName !== undefined) {
       this.weaponName.textContent = player.weaponName;
+    }
+
+    // Mines
+    if (this.mineCount && player.mines !== undefined) {
+      this.mineCount.textContent = player.mines;
+      this.mineCount.classList.toggle('empty', player.mines === 0);
     }
 
     // Reload bar

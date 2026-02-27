@@ -18,14 +18,14 @@
   },
   "ammo": {
     "magazineSize": 1,
-    "reserveMax": 10,
+    "reserveMax": 5,
     "reloadTimeMs": 3500
   },
   "recoil": {
-    "perShot": 100,
+    "perShot": 250,
     "recovery": 0.02,
-    "maxAccumulated": 100,
-    "knockback": 200
+    "maxAccumulated": 250,
+    "knockback": 400
   },
   "sound": {
     "fire": "assets/sounds/assault_rifle.mp3",
@@ -35,7 +35,7 @@
   "muzzleOffset": { "shoulder": 4, "barrel": 38 },
   "rendering": {
     "tracerColor": "#FF0000",
-    "trailLength": 30,
+    "trailLength": 40,
     "trailWidth": 4,
     "trailOpacity": 0.7,
     "glowRadius": 3,

@@ -26,6 +26,8 @@ export const EVT = {
   RESPAWN:    'respawn',
   WEAPON_PICKUP: 'weapon_pickup',
   AMMO_PICKUP: 'ammo_pickup',
+  MINE_PLACE: 'mine_place',
+  MINE_EXPLODE: 'mine_explode',
 };
 
 // Player states

@@ -32,6 +32,7 @@ export class Game {
     this.remotePlayers = new Map();
     this.projectiles = [];
     this.pickups = [];
+    this.mines = [];
     this.running = false;
     this.lastTime = 0;
     this.accumulator = 0;
@@ -44,6 +45,7 @@ export class Game {
     this._reloadTimer = 0;
     this._reloadTotal = 0;
     this._prevFire = false;
+    this._prevPlaceMine = false;
 
     // Death sound
     this._deathSound = new Audio('assets/sounds/death.mp3');
@@ -200,6 +202,9 @@ export class Game {
         this.localPlayer.reserveAmmo = p.reserveAmmo;
         this.localPlayer.state = p.state;
 
+        // Sync mines count from server
+        if (p.mines !== undefined) this.localPlayer.mines = p.mines;
+
         // Sync weapon type from server
         if (p.weapon && p.weapon !== this.localPlayer.weapon) {
           this.localPlayer.weapon = p.weapon;
@@ -234,6 +239,7 @@ export class Game {
     }
     this.projectiles = incoming;
     this.pickups = snap.pickups || [];
+    this.mines = snap.mines || [];
 
     // Collect leaderboard data from all players in snapshot
     this.leaderboardData = snap.players.map(p => ({
@@ -267,6 +273,9 @@ export class Game {
     }
     if (evt.event === 'hit') {
       this.particles.emitBlood(evt.x, evt.y, evt.dirX || 0, evt.dirY || 0);
+    }
+    if (evt.event === 'mine_explode') {
+      this.particles.emitExplosion(evt.x, evt.y);
     }
   }
 
@@ -411,9 +420,11 @@ export class Game {
       aimAngle: rawInput.aimAngle,
       fire: rawInput.fire,
       reload: rawInput.reload,
+      placeMine: rawInput.placeMine && !this._prevPlaceMine, // rising edge only
     });
 
     this._prevFire = rawInput.fire;
+    this._prevPlaceMine = rawInput.placeMine;
   }
 
   _render(alpha) {
@@ -523,6 +534,12 @@ export class Game {
       }
     }
 
+    // Draw mines
+    for (const mine of this.mines) {
+      const isOwn = this.localPlayer && mine.ownerId === this.localPlayer.id;
+      this.renderer.drawMine(mine.x, mine.y, mine.state, isOwn);
+    }
+
     // Draw particles & ragdolls
     this.particles.draw(this.renderer);
     this.ragdolls.draw(this.renderer);
@@ -545,6 +562,7 @@ export class Game {
         reloadPct,
         weaponName: hudWep ? hudWep.name : '',
         magazineSize: hudWep ? hudWep.ammo.magazineSize : 30,
+        mines: this.localPlayer.mines ?? 0,
       });
       if (this.leaderboardData) {
         this.hud.updateLeaderboard(this.leaderboardData);
