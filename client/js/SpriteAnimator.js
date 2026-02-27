@@ -143,6 +143,7 @@ export class SpriteAnimator {
     const { aimAngle } = player;
     const ox = this.config.armOffset.x;
     const oy = this.config.armOffset.y;
+    const jp = this.config.jetpackOffset || { x: 0, y: 0 };
 
     // Arm
     const armLen = 16;
@@ -160,26 +161,74 @@ export class SpriteAnimator {
     g.lineTo(tipX, tipY);
     g.stroke({ width: 2, color: '#777777' });
 
-    // Jetpack on back
+    // Jetpack on back (independent offset)
     const facing = facingRight ? 1 : -1;
-    const backX = ox - facing * 8;
-    const backY = oy + 6;
+    const backX = jp.x - facing * 8;
+    const backY = jp.y;
 
-    g.rect(backX - 4, backY - 6, 8, 12);
-    g.fill('#555566');
-    g.stroke({ width: 1, color: '#777788' });
+    // Strap to shoulder
+    g.moveTo(backX + facing * 3, backY - 6);
+    g.lineTo(ox, oy - 4);
+    g.stroke({ width: 1.5, color: '#3a3a4a' });
 
-    // Jet flame
+    // Frame/bracket
+    g.roundRect(backX - 2, backY - 5, 4, 10, 1);
+    g.fill('#3d3d4d');
+
+    // Left fuel tank
+    g.roundRect(backX - 6, backY - 7, 5, 13, 2.5);
+    g.fill('#505068');
+    g.stroke({ width: 0.8, color: '#6a6a82' });
+    g.roundRect(backX - 5.5, backY - 5, 1.5, 7, 0.8);
+    g.fill({ color: '#8888aa', alpha: 0.3 });
+
+    // Right fuel tank
+    g.roundRect(backX + 1, backY - 7, 5, 13, 2.5);
+    g.fill('#505068');
+    g.stroke({ width: 0.8, color: '#6a6a82' });
+    g.roundRect(backX + 1.5, backY - 5, 1.5, 7, 0.8);
+    g.fill({ color: '#8888aa', alpha: 0.3 });
+
+    // Nozzle tips
+    g.roundRect(backX - 5, backY + 5.5, 3, 2, 0.5);
+    g.fill('#2a2a35');
+    g.roundRect(backX + 2, backY + 5.5, 3, 2, 0.5);
+    g.fill('#2a2a35');
+
+    // Jet flames
     if (player.jetting) {
-      const flameH = 10 + Math.random() * 12;
-      g.moveTo(backX - 5, backY + 6);
-      g.lineTo(backX, backY + 6 + flameH);
-      g.lineTo(backX + 5, backY + 6);
+      const flameH = 8 + Math.random() * 10;
+
+      g.circle(backX, backY + 10 + flameH * 0.3, 9);
+      g.fill({ color: '#ff5500', alpha: 0.08 });
+
+      // Left nozzle
+      g.moveTo(backX - 5.5, backY + 7);
+      g.lineTo(backX - 3.5, backY + 7 + flameH);
+      g.lineTo(backX - 1.5, backY + 7);
       g.fill('#ff5500');
-      g.moveTo(backX - 3, backY + 6);
-      g.lineTo(backX, backY + 6 + flameH * 0.65);
-      g.lineTo(backX + 3, backY + 6);
-      g.fill('#ffcc00');
+      g.moveTo(backX - 5, backY + 7);
+      g.lineTo(backX - 3.5, backY + 7 + flameH * 0.6);
+      g.lineTo(backX - 2, backY + 7);
+      g.fill('#ffcc44');
+      g.moveTo(backX - 4.5, backY + 7);
+      g.lineTo(backX - 3.5, backY + 7 + flameH * 0.3);
+      g.lineTo(backX - 2.5, backY + 7);
+      g.fill('#ffffcc');
+
+      // Right nozzle
+      g.moveTo(backX + 1.5, backY + 7);
+      g.lineTo(backX + 3.5, backY + 7 + flameH);
+      g.lineTo(backX + 5.5, backY + 7);
+      g.fill('#ff5500');
+      g.moveTo(backX + 2, backY + 7);
+      g.lineTo(backX + 3.5, backY + 7 + flameH * 0.6);
+      g.lineTo(backX + 5, backY + 7);
+      g.fill('#ffcc44');
+      g.moveTo(backX + 2.5, backY + 7);
+      g.lineTo(backX + 3.5, backY + 7 + flameH * 0.3);
+      g.lineTo(backX + 4.5, backY + 7);
+      g.fill('#ffffcc');
     }
   }
 }

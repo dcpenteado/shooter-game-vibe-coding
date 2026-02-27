@@ -36,9 +36,10 @@
   },
   "sprites": {
     "basePath": "assets/characters/soldier",
-    "scale": 3.0,
+    "scale": 3.8,
     "anchor": { "x": 0.5, "y": 0.5 },
-    "armOffset": { "x": 0, "y": -10 },
+    "armOffset": { "x": 6, "y": 4 },
+    "jetpackOffset": { "x": 2, "y": -4 },
     "animations": {
       "idle": {
         "frameCount": 4,

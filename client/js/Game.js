@@ -341,6 +341,11 @@ export class Game {
           false
         );
         this.renderer.markPlayerActive(id);
+        // Jetpack smoke for remote players
+        if (state.jetting) {
+          const facing = Math.cos(state.aimAngle || 0) >= 0 ? 1 : -1;
+          this.particles.emitJetSmoke(state.x - facing * 8, state.y - 4);
+        }
       }
     }
 
@@ -358,6 +363,11 @@ export class Game {
       this.localPlayer.x = physX;
       this.localPlayer.y = physY;
       this.renderer.markPlayerActive(this.localPlayer.id);
+      // Jetpack smoke for local player
+      if (this.localPlayer.jetting) {
+        const facing = Math.cos(this.localPlayer.aimAngle || 0) >= 0 ? 1 : -1;
+        this.particles.emitJetSmoke(renderX - facing * 8, renderY - 4);
+      }
     }
 
     // Remove stale player graphics

@@ -58,6 +58,25 @@ export class ParticleSystem {
     });
   }
 
+  /** Emit jetpack smoke trail (spawns below the flame) */
+  emitJetSmoke(x, y) {
+    for (let i = 0; i < 2; i++) {
+      const offsetX = (Math.random() - 0.5) * 8;
+      this.particles.push({
+        x: x + offsetX,
+        y: y + 18 + Math.random() * 6,
+        vx: (Math.random() - 0.5) * 20,
+        vy: 30 + Math.random() * 40,
+        life: 250 + Math.random() * 200,
+        maxLife: 450,
+        size: 2.5 + Math.random() * 2.5,
+        color: '#777788',
+        gravity: false,
+        maxAlpha: 0.3,
+      });
+    }
+  }
+
   /** Emit muzzle flash */
   emitMuzzleFlash(x, y) {
     this.emit(x, y, 2, {
@@ -85,8 +104,9 @@ export class ParticleSystem {
 
   draw(renderer) {
     for (const p of this.particles) {
-      const alpha = Math.max(0, p.life / p.maxLife);
-      renderer.drawParticle(p.x, p.y, p.size * alpha, p.color, alpha);
+      const t = Math.max(0, p.life / p.maxLife);
+      const alpha = t * (p.maxAlpha ?? 1);
+      renderer.drawParticle(p.x, p.y, p.size * t, p.color, alpha);
     }
   }
 }
