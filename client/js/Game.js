@@ -31,6 +31,7 @@ export class Game {
     this.localPlayer = null;
     this.remotePlayers = new Map();
     this.projectiles = [];
+    this.pickups = [];
     this.running = false;
     this.lastTime = 0;
     this.accumulator = 0;
@@ -151,8 +152,9 @@ export class Game {
       }
     }
 
-    // Update projectiles from server
+    // Update projectiles and pickups from server
     this.projectiles = snap.projectiles || [];
+    this.pickups = snap.pickups || [];
   }
 
   _onEvent(evt) {
@@ -327,6 +329,11 @@ export class Game {
       const wep = this.weaponDefs[proj.weapon] || {};
       const color = wep.rendering?.tracerColor || '#ffdd44';
       this.renderer.drawProjectile(proj.x, proj.y, proj.vx, proj.vy, color);
+    }
+
+    // Draw pickups
+    for (const pickup of this.pickups) {
+      this.renderer.drawPickup(pickup.x, pickup.y, pickup.amount);
     }
 
     // Draw particles & ragdolls

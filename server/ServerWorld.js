@@ -1,6 +1,10 @@
 import { stepPlayer, stepProjectile, createPlayerEntity } from '../shared/physics.js';
 import { PLAYER_STATE } from '../shared/protocol.js';
-import { RESPAWN_TIME_MS, SERVER_TICK_DT, CLIENT_TICK_DT } from '../shared/constants.js';
+import {
+  RESPAWN_TIME_MS, SERVER_TICK_DT, CLIENT_TICK_DT,
+  AMMO_PICKUP_INTERVAL, AMMO_PICKUP_AMOUNT,
+  PICKUP_COLLECT_RADIUS, PICKUP_DESPAWN_TIME,
+} from '../shared/constants.js';
 
 export class ServerWorld {
   constructor(mapData, charDef, weaponDefs) {
@@ -11,6 +15,9 @@ export class ServerWorld {
     this.players = new Map(); // id -> entity
     this.projectiles = [];
     this.nextProjectileId = 1;
+    this.pickups = [];
+    this.nextPickupId = 1;
+    this.pickupSpawnTimer = AMMO_PICKUP_INTERVAL;
     this.events = []; // events generated this tick
     this.tick = 0;
   }
@@ -179,10 +186,78 @@ export class ServerWorld {
                 dirY: hitDir.y / len,
                 weapon: proj.weapon,
               });
+
+              // Drop victim's ammo as pickup
+              const dropAmount = victim.ammo + victim.reserveAmmo;
+              if (dropAmount > 0) {
+                this.pickups.push({
+                  id: this.nextPickupId++,
+                  type: 'ammo',
+                  amount: dropAmount,
+                  x: victim.x,
+                  y: victim.y - 20,
+                  lifetime: PICKUP_DESPAWN_TIME,
+                });
+              }
             }
           }
         }
       }
+    }
+
+    // Periodic ammo pickup spawn
+    this.pickupSpawnTimer -= SERVER_TICK_DT * 1000;
+    if (this.pickupSpawnTimer <= 0) {
+      this.pickupSpawnTimer = AMMO_PICKUP_INTERVAL;
+      const sp = this.mapData.spawnPoints[
+        Math.floor(Math.random() * this.mapData.spawnPoints.length)
+      ];
+      this.pickups.push({
+        id: this.nextPickupId++,
+        type: 'ammo',
+        amount: AMMO_PICKUP_AMOUNT,
+        x: sp.x + (Math.random() - 0.5) * 100,
+        y: sp.y - 20,
+        lifetime: PICKUP_DESPAWN_TIME,
+      });
+    }
+
+    // Update pickups: check collection & despawn
+    const collectRadiusSq = PICKUP_COLLECT_RADIUS * PICKUP_COLLECT_RADIUS;
+    for (let i = this.pickups.length - 1; i >= 0; i--) {
+      const pickup = this.pickups[i];
+      pickup.lifetime -= SERVER_TICK_DT * 1000;
+      if (pickup.lifetime <= 0) {
+        this.pickups.splice(i, 1);
+        continue;
+      }
+
+      let collected = false;
+      for (const player of playersArr) {
+        if (player.state !== PLAYER_STATE.ALIVE) continue;
+        const dx = player.x - pickup.x;
+        const dy = player.y - pickup.y;
+        if (dx * dx + dy * dy < collectRadiusSq) {
+          // Fill magazine first, then reserve
+          const wep = this._getWeaponDef(player);
+          const magSize = wep ? wep.ammo.magazineSize : 30;
+          const magSpace = magSize - player.ammo;
+          const toMag = Math.min(pickup.amount, magSpace);
+          player.ammo += toMag;
+          player.reserveAmmo += pickup.amount - toMag;
+          this.events.push({
+            event: 'ammo_pickup',
+            playerId: player.id,
+            amount: pickup.amount,
+            x: pickup.x,
+            y: pickup.y,
+          });
+          this.pickups.splice(i, 1);
+          collected = true;
+          break;
+        }
+      }
+      if (collected) continue;
     }
 
   }
@@ -286,6 +361,14 @@ export class ServerWorld {
       ownerId: p.ownerId,
     }));
 
-    return { players, projectiles, tick: this.tick };
+    const pickups = this.pickups.map(p => ({
+      id: p.id,
+      type: p.type,
+      amount: p.amount,
+      x: Math.round(p.x),
+      y: Math.round(p.y),
+    }));
+
+    return { players, projectiles, pickups, tick: this.tick };
   }
 }

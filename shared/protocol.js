@@ -21,6 +21,7 @@ export const EVT = {
   KILL:       'kill',
   RESPAWN:    'respawn',
   WEAPON_PICKUP: 'weapon_pickup',
+  AMMO_PICKUP: 'ammo_pickup',
 };
 
 // Player states

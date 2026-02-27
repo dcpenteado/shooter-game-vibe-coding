@@ -7,6 +7,7 @@ export class Renderer {
     this.mapGraphics = null;
     // Reusable graphics objects (one per layer, cleared each frame)
     this.projGraphics = null;
+    this.pickupGraphics = null;
     this.particleGraphics = null;
     this.crosshairGraphics = null;
     this.playerGfx = new Map(); // id -> { graphics, container }
@@ -23,7 +24,7 @@ export class Renderer {
     });
 
     // Create layer containers (draw order)
-    const layerNames = ['background', 'map', 'remotePlayers', 'localPlayer', 'projectiles', 'particles'];
+    const layerNames = ['background', 'map', 'pickups', 'remotePlayers', 'localPlayer', 'projectiles', 'particles'];
     for (const name of layerNames) {
       const container = new Container();
       this.layers[name] = container;
@@ -32,6 +33,9 @@ export class Renderer {
 
     this.mapGraphics = new Graphics();
     this.layers.map.addChild(this.mapGraphics);
+
+    this.pickupGraphics = new Graphics();
+    this.layers.pickups.addChild(this.pickupGraphics);
 
     this.projGraphics = new Graphics();
     this.layers.projectiles.addChild(this.projGraphics);
@@ -193,6 +197,35 @@ export class Renderer {
     g.fill({ color, alpha: Math.max(0, alpha) });
   }
 
+  /** Draw an ammo pickup crate */
+  drawPickup(x, y, amount) {
+    const g = this.pickupGraphics;
+    const w = 16;
+    const h = 12;
+    const bob = Math.sin(Date.now() * 0.003) * 3;
+    const py = y + bob;
+
+    // Crate body
+    g.rect(x - w / 2, py - h / 2, w, h);
+    g.fill('#cc9933');
+    g.stroke({ width: 1, color: '#ffcc44' });
+
+    // Ammo icon (small bullet lines)
+    g.moveTo(x - 3, py - 2);
+    g.lineTo(x - 3, py + 3);
+    g.stroke({ width: 2, color: '#665522' });
+    g.moveTo(x + 1, py - 2);
+    g.lineTo(x + 1, py + 3);
+    g.stroke({ width: 2, color: '#665522' });
+    g.moveTo(x + 5, py - 2);
+    g.lineTo(x + 5, py + 3);
+    g.stroke({ width: 2, color: '#665522' });
+
+    // Glow effect
+    g.circle(x, py, 14);
+    g.fill({ color: '#ffcc44', alpha: 0.1 + Math.sin(Date.now() * 0.005) * 0.05 });
+  }
+
   /** Draw crosshair at screen position */
   drawCrosshair(screenX, screenY) {
     const g = this.crosshairGraphics;
@@ -232,6 +265,7 @@ export class Renderer {
   /** Clear per-frame graphics */
   clearFrame() {
     this.projGraphics.clear();
+    this.pickupGraphics.clear();
     this.particleGraphics.clear();
     this.crosshairGraphics.clear();
 
@@ -269,7 +303,7 @@ export class Renderer {
 
   /** Apply camera offset to all world layers */
   applyCamera(camera) {
-    const worldLayers = ['background', 'map', 'remotePlayers', 'localPlayer', 'projectiles', 'particles'];
+    const worldLayers = ['background', 'map', 'pickups', 'remotePlayers', 'localPlayer', 'projectiles', 'particles'];
     for (const name of worldLayers) {
       this.layers[name].x = -camera.x;
       this.layers[name].y = -camera.y;

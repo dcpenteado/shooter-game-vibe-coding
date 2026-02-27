@@ -30,6 +30,12 @@ export const DEFAULT_JET_H_BOOST = 0.3;
 export const DEFAULT_MAX_HP = 100;
 export const RESPAWN_TIME_MS = 3000;
 
+// Pickups
+export const AMMO_PICKUP_INTERVAL = 20000;  // ms between periodic ammo spawns
+export const AMMO_PICKUP_AMOUNT = 30;       // reserve bullets per periodic pickup
+export const PICKUP_COLLECT_RADIUS = 30;    // px distance to collect
+export const PICKUP_DESPAWN_TIME = 60000;   // ms until uncollected pickup despawns
+
 // Networking
 export const NET_PORT = 3000;
 export const INTERPOLATION_DELAY = 100;   // ms behind server time
