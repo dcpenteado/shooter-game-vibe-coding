@@ -65,7 +65,6 @@ export class HUD {
     const sorted = [...players].sort((a, b) => b.kills - a.kills || a.deaths - b.deaths);
     const top3 = sorted.slice(0, 3);
 
-    const rankClasses = ['gold', 'silver', 'bronze'];
     const rankLabels = ['1st', '2nd', '3rd'];
 
     // Gun icon — Font Awesome "gun" (filled silhouette, CC BY 4.0)
@@ -82,7 +81,7 @@ export class HUD {
 
     const html = top3.map((p, i) => {
       return `<div class="lb-row">` +
-        `<span class="lb-rank ${rankClasses[i]}">${rankLabels[i]}</span>` +
+        `<span class="lb-rank">${rankLabels[i]}</span>` +
         `<span class="lb-name">${esc(p.name || '?')}</span>` +
         `<span class="lb-stats">` +
           `<span class="lb-stat">${pistolSvg}<span class="lb-kills-val">${p.kills}</span></span>` +

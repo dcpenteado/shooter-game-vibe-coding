@@ -1,4 +1,4 @@
-import { Application, Graphics, Container, AnimatedSprite, Assets } from 'pixi.js';
+import { Application, Graphics, Container, AnimatedSprite, Assets, Text, TextStyle } from 'pixi.js';
 import { SpriteAnimator } from './SpriteAnimator.js';
 import { DeathFragments } from './DeathFragments.js';
 
@@ -17,6 +17,7 @@ export class Renderer {
     this.spritesReady = false;
     this.deathFragments = new DeathFragments();
     this.leaderId = null;
+    this.reloadHintText = null;
   }
 
   async init(canvas) {
@@ -52,6 +53,21 @@ export class Renderer {
     // Crosshair layer (screen-space, not affected by camera)
     this.crosshairGraphics = new Graphics();
     this.app.stage.addChild(this.crosshairGraphics);
+
+    // "R to reload" hint text (world-space, in localPlayer layer)
+    this.reloadHintText = new Text({
+      text: 'R to reload',
+      style: new TextStyle({
+        fontFamily: 'monospace',
+        fontSize: 13,
+        fontWeight: 'bold',
+        fill: '#ffffff',
+        letterSpacing: 1,
+      }),
+    });
+    this.reloadHintText.anchor.set(0.5, 0.5);
+    this.reloadHintText.alpha = 0;
+    this.layers.localPlayer.addChild(this.reloadHintText);
 
     return this;
   }
@@ -466,6 +482,19 @@ export class Renderer {
     // Center dot
     g.circle(screenX, screenY, 1.5);
     g.fill({ color: '#ff3333', alpha: 0.5 });
+  }
+
+  /** Show or hide "R to reload" hint near the player */
+  drawReloadHint(x, y, show) {
+    if (!this.reloadHintText) return;
+    if (show) {
+      this.reloadHintText.x = x;
+      this.reloadHintText.y = y + 38;
+      // Gentle pulsing opacity between 0.35 and 0.55
+      this.reloadHintText.alpha = 0.45 + Math.sin(Date.now() * 0.004) * 0.1;
+    } else {
+      this.reloadHintText.alpha = 0;
+    }
   }
 
   /** Clear per-frame graphics */

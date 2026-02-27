@@ -466,6 +466,12 @@ export class Game {
         this._jetSound.pause();
       }
       this._jetting = isJetting;
+
+      // "R to reload" hint when magazine is empty and not reloading
+      const showReloadHint = this.localPlayer.state !== 1
+        && this.localPlayer.ammo === 0
+        && this._reloadTimer <= 0;
+      this.renderer.drawReloadHint(renderX, renderY, showReloadHint);
     }
 
     // Remove stale player graphics

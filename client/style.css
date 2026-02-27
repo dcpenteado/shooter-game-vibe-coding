@@ -229,22 +229,25 @@ html, body {
   position: absolute;
   top: 12px;
   left: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 6px 10px;
   min-width: 150px;
+  backdrop-filter: blur(6px);
 }
 
 .lb-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(0,0,0,0.5);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 4px;
-  padding: 4px 10px;
+  padding: 3px 0;
   font-size: 12px;
   animation: lbSlideIn 0.3s ease;
+}
+
+.lb-row + .lb-row {
+  border-top: 1px solid rgba(255,255,255,0.06);
 }
 
 @keyframes lbSlideIn {
@@ -253,20 +256,17 @@ html, body {
 }
 
 .lb-rank {
-  font-weight: 800;
+  font-weight: 700;
   font-size: 11px;
   width: 18px;
   text-align: center;
   flex-shrink: 0;
+  color: rgba(255,255,255,0.4);
 }
 
-.lb-rank.gold { color: #ffd700; text-shadow: 0 0 6px rgba(255,215,0,0.4); }
-.lb-rank.silver { color: #c0c0c0; text-shadow: 0 0 6px rgba(192,192,192,0.3); }
-.lb-rank.bronze { color: #cd7f32; text-shadow: 0 0 6px rgba(205,127,50,0.3); }
-
 .lb-name {
-  color: #ddd;
-  font-weight: 600;
+  color: rgba(255,255,255,0.75);
+  font-weight: 500;
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -292,13 +292,13 @@ html, body {
   width: 12px;
   height: 12px;
   flex-shrink: 0;
-  opacity: 0.7;
+  opacity: 0.5;
 }
 
-.lb-kills-icon { color: #6f6; }
-.lb-deaths-icon { color: #f44; }
-.lb-kills-val { color: #6f6; font-weight: 700; min-width: 14px; text-align: right; }
-.lb-deaths-val { color: #f66; font-weight: 700; min-width: 14px; text-align: right; }
+.lb-kills-icon { color: rgba(255,255,255,0.5); }
+.lb-deaths-icon { color: rgba(255,255,255,0.35); }
+.lb-kills-val { color: rgba(255,255,255,0.6); font-weight: 600; min-width: 14px; text-align: right; }
+.lb-deaths-val { color: rgba(255,255,255,0.4); font-weight: 600; min-width: 14px; text-align: right; }
 
 /* Killfeed */
 #hud-killfeed {
