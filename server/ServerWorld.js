@@ -278,8 +278,10 @@ export class ServerWorld {
     const spread = (Math.random() - 0.5) * wep.projectile.spread;
     const angle = aimAngle + spread;
 
-    const muzzleX = entity.x + Math.cos(angle) * 24;
-    const muzzleY = (entity.y - 10) + Math.sin(angle) * 24;
+    const shoulder = wep.muzzleOffset?.shoulder ?? -10;
+    const barrel = wep.muzzleOffset?.barrel ?? 24;
+    const muzzleX = entity.x + Math.cos(angle) * barrel;
+    const muzzleY = (entity.y + shoulder) + Math.sin(angle) * barrel;
 
     this.projectiles.push({
       id: this.nextProjectileId++,

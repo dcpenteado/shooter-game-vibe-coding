@@ -141,9 +141,11 @@ export class SpriteAnimator {
     g.clear();
 
     const { aimAngle } = player;
-    const ox = this.config.armOffset.x;
+    const flip = facingRight ? 1 : -1;
+    const ox = this.config.armOffset.x * flip;
     const oy = this.config.armOffset.y;
-    const jp = this.config.jetpackOffset || { x: 0, y: 0 };
+    const jpCfg = this.config.jetpackOffset || { x: 0, y: 0 };
+    const jp = { x: jpCfg.x * flip, y: jpCfg.y };
 
     // Arm
     const armLen = 16;

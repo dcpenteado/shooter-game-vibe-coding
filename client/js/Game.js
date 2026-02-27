@@ -271,8 +271,10 @@ export class Game {
         this.localPlayer.fireCooldown = cooldown;
 
         // Muzzle flash particle
-        const muzzleX = this.localPlayer.x + Math.cos(aimAngle) * 24;
-        const muzzleY = (this.localPlayer.y - 10) + Math.sin(aimAngle) * 24;
+        const shoulder = wep.muzzleOffset?.shoulder ?? -10;
+        const barrel = wep.muzzleOffset?.barrel ?? 24;
+        const muzzleX = this.localPlayer.x + Math.cos(aimAngle) * barrel;
+        const muzzleY = (this.localPlayer.y + shoulder) + Math.sin(aimAngle) * barrel;
         this.particles.emitMuzzleFlash(muzzleX, muzzleY);
 
         // Apply recoil knockback (opposite direction of shot)

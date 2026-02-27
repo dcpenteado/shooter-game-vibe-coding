@@ -26,6 +26,7 @@
     "maxAccumulated": 0.12,
     "knockback": 25
   },
+  "muzzleOffset": { "shoulder": 4, "barrel": 30 },
   "rendering": {
     "tracerColor": "#ffdd44",
     "trailLength": 8,
