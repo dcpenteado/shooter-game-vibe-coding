@@ -151,6 +151,16 @@ html, body {
   flex-wrap: wrap;
 }
 
+#weapon-name {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.35);
+  text-transform: uppercase;
+  flex-basis: 100%;
+  text-align: center;
+  order: -1;
+}
+
 .ammo-icon {
   color: #fa4;
 }

@@ -43,6 +43,7 @@ export class Game {
     this._reloading = false;
     this._reloadTimer = 0;
     this._reloadTotal = 0;
+    this._prevFire = false;
 
     // Death sound
     this._deathSound = new Audio('assets/sounds/death.mp3');
@@ -198,6 +199,15 @@ export class Game {
         this.localPlayer.ammo = p.ammo;
         this.localPlayer.reserveAmmo = p.reserveAmmo;
         this.localPlayer.state = p.state;
+
+        // Sync weapon type from server
+        if (p.weapon && p.weapon !== this.localPlayer.weapon) {
+          this.localPlayer.weapon = p.weapon;
+          this._reloading = false;
+          this._reloadTimer = 0;
+          this._reloadTotal = 0;
+          this._prevFire = false;
+        }
       } else {
         // Push remote player state for interpolation
         this.interpolation.pushState(p.id, performance.now(), {
@@ -324,8 +334,12 @@ export class Game {
     stepPlayer(this.localPlayer, rawInput, dt, this.mapPolygons, this.mapData.bounds);
 
     // Handle firing (client visual + recoil knockback)
-    if (rawInput.fire && this.localPlayer.fireCooldown <= 0 && this.localPlayer.ammo > 0) {
-      const wep = this.weaponDefs[this.localPlayer.weapon];
+    const currentWep = this.weaponDefs[this.localPlayer.weapon];
+    const isSemi = currentWep && currentWep.firing.mode === 'semi';
+    const fireTriggered = rawInput.fire && (!isSemi || !this._prevFire);
+
+    if (fireTriggered && this.localPlayer.fireCooldown <= 0 && this.localPlayer.ammo > 0) {
+      const wep = currentWep;
       if (wep) {
         const cooldown = 60 / wep.firing.rateOfFire;
         this.localPlayer.fireCooldown = cooldown;
@@ -399,6 +413,7 @@ export class Game {
       reload: rawInput.reload,
     });
 
+    this._prevFire = rawInput.fire;
   }
 
   _render(alpha) {
@@ -501,7 +516,11 @@ export class Game {
 
     // Draw pickups
     for (const pickup of this.pickups) {
-      this.renderer.drawPickup(pickup.x, pickup.y, pickup.amount);
+      if (pickup.type === 'weapon') {
+        this.renderer.drawWeaponPickup(pickup.x, pickup.y, pickup.weaponId);
+      } else {
+        this.renderer.drawPickup(pickup.x, pickup.y, pickup.amount);
+      }
     }
 
     // Draw particles & ragdolls
@@ -515,6 +534,7 @@ export class Game {
     if (this.localPlayer) {
       const reloadPct = (this._reloadTotal > 0 && this._reloadTimer > 0)
         ? 1 - this._reloadTimer / this._reloadTotal : 0;
+      const hudWep = this.weaponDefs[this.localPlayer.weapon];
       this.hud.update({
         hp: this.localPlayer.hp,
         maxHP: this.localPlayer.maxHP,
@@ -523,6 +543,8 @@ export class Game {
         ammo: this.localPlayer.ammo,
         reserveAmmo: this.localPlayer.reserveAmmo,
         reloadPct,
+        weaponName: hudWep ? hudWep.name : '',
+        magazineSize: hudWep ? hudWep.ammo.magazineSize : 30,
       });
       if (this.leaderboardData) {
         this.hud.updateLeaderboard(this.leaderboardData);

@@ -14,10 +14,15 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Load game data (shared across all rooms)
 const mapData = JSON.parse(readFileSync(join(__dirname, 'data/maps/dm_arena.json'), 'utf-8'));
-const weaponData = JSON.parse(readFileSync(join(__dirname, 'data/weapons/assault_rifle.json'), 'utf-8'));
 const charData = JSON.parse(readFileSync(join(__dirname, 'data/characters/soldier.json'), 'utf-8'));
 
-const weaponDefs = { [weaponData.id]: weaponData };
+// Load all weapon definitions
+const weaponFiles = ['assault_rifle.json', 'awm.json'];
+const weaponDefs = {};
+for (const file of weaponFiles) {
+  const data = JSON.parse(readFileSync(join(__dirname, 'data/weapons', file), 'utf-8'));
+  weaponDefs[data.id] = data;
+}
 
 // Express app
 const app = express();

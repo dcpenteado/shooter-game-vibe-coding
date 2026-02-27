@@ -1,0 +1,44 @@
+{
+  "id": "awm",
+  "name": "AWM",
+  "version": 1,
+  "category": "primary",
+  "projectile": {
+    "speed": 2800,
+    "damage": 100,
+    "spread": 0.005,
+    "gravity": false,
+    "lifetime": 800,
+    "radius": 3,
+    "piercing": true
+  },
+  "firing": {
+    "mode": "semi",
+    "rateOfFire": 40
+  },
+  "ammo": {
+    "magazineSize": 1,
+    "reserveMax": 10,
+    "reloadTimeMs": 3500
+  },
+  "recoil": {
+    "perShot": 100,
+    "recovery": 0.02,
+    "maxAccumulated": 100,
+    "knockback": 200
+  },
+  "sound": {
+    "fire": "assets/sounds/assault_rifle.mp3",
+    "reload": "assets/sounds/mag_reloading.mp3",
+    "volume": 0.35
+  },
+  "muzzleOffset": { "shoulder": 4, "barrel": 38 },
+  "rendering": {
+    "tracerColor": "#FF0000",
+    "trailLength": 30,
+    "trailWidth": 4,
+    "trailOpacity": 0.7,
+    "glowRadius": 3,
+    "coreRadius": 1.0
+  }
+}

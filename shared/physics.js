@@ -91,22 +91,30 @@ export function stepProjectile(proj, dt, mapPolygons, players) {
   proj.lifetime -= dt * 1000;
 
   if (proj.lifetime <= 0) {
-    return { alive: false, hitPlayerId: null, hitPos: null };
+    return { alive: false, hitPlayerIds: [], hitPositions: [] };
   }
 
-  // Check map collision (line segment)
-  for (const poly of mapPolygons) {
-    const hit = lineVsPolygon(prevX, prevY, proj.x, proj.y, poly.vertices);
-    if (hit) {
-      return { alive: false, hitPlayerId: null, hitPos: { x: hit.x, y: hit.y } };
+  const isPiercing = proj.piercing || false;
+  const hitPlayerIds = [];
+  const hitPositions = [];
+
+  // Check map collision (line segment) — piercing ignores walls
+  if (!isPiercing) {
+    for (const poly of mapPolygons) {
+      const hit = lineVsPolygon(prevX, prevY, proj.x, proj.y, poly.vertices);
+      if (hit) {
+        return { alive: false, hitPlayerIds: [], hitPositions: [] };
+      }
     }
   }
 
   // Check player collision
   if (players) {
+    const alreadyHit = proj._hitIds || [];
     for (const player of players) {
       if (player.id === proj.ownerId) continue;
       if (player.state !== 0) continue; // not alive
+      if (alreadyHit.includes(player.id)) continue; // already pierced this player
 
       const hit = lineVsAABB(prevX, prevY, proj.x, proj.y, {
         x: player.x,
@@ -115,12 +123,18 @@ export function stepProjectile(proj, dt, mapPolygons, players) {
         h: player.height,
       });
       if (hit) {
-        return { alive: false, hitPlayerId: player.id, hitPos: { x: hit.x, y: hit.y } };
+        hitPlayerIds.push(player.id);
+        hitPositions.push({ x: hit.x, y: hit.y });
+        if (!isPiercing) {
+          return { alive: false, hitPlayerIds, hitPositions };
+        }
+        // Piercing: mark as hit so we don't hit same player twice
+        alreadyHit.push(player.id);
       }
     }
   }
 
-  return { alive: true, hitPlayerId: null, hitPos: null };
+  return { alive: true, hitPlayerIds, hitPositions };
 }
 
 /**
@@ -182,6 +196,7 @@ export function createPlayerEntity(id, charDef, spawnX, spawnY) {
     fireCooldown: 0,
 
     // Internal
+    _prevFire: false,
     _tickTime: 0,
     name: '',
     color: charDef.rendering?.bodyColor || '#cc4444',

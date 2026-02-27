@@ -448,6 +448,43 @@ export class Renderer {
     g.fill({ color: '#ffcc44', alpha: 0.1 + Math.sin(Date.now() * 0.005) * 0.05 });
   }
 
+  /** Draw a weapon pickup (rifle on ground) */
+  drawWeaponPickup(x, y, weaponId) {
+    const g = this.pickupGraphics;
+    const bob = Math.sin(Date.now() * 0.003) * 3;
+    const py = y + bob;
+
+    const glowColor = weaponId === 'awm' ? '#00ccff' : '#ffffff';
+    const bodyColor = weaponId === 'awm' ? '#2a4a5a' : '#4a4a4a';
+    const accentColor = weaponId === 'awm' ? '#00aadd' : '#888888';
+
+    // Pulsing glow
+    const glowAlpha = 0.12 + Math.sin(Date.now() * 0.004) * 0.06;
+    g.circle(x, py, 20);
+    g.fill({ color: glowColor, alpha: glowAlpha });
+    g.circle(x, py, 12);
+    g.fill({ color: glowColor, alpha: glowAlpha * 1.5 });
+
+    // Rifle body
+    const len = 24;
+    const h = 4;
+    g.roundRect(x - len / 2, py - h / 2, len, h, 2);
+    g.fill(bodyColor);
+    g.stroke({ width: 1, color: accentColor });
+
+    // Stock (left side)
+    g.roundRect(x - len / 2 - 4, py - 3, 6, 6, 1);
+    g.fill(bodyColor);
+
+    // Scope (on top center)
+    g.roundRect(x - 3, py - h / 2 - 4, 10, 3, 1);
+    g.fill(accentColor);
+
+    // Barrel tip (right side)
+    g.rect(x + len / 2, py - 1.5, 6, 3);
+    g.fill('#555555');
+  }
+
   /** Draw crosshair at screen position */
   drawCrosshair(screenX, screenY) {
     const g = this.crosshairGraphics;

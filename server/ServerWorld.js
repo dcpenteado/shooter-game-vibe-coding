@@ -4,6 +4,7 @@ import {
   RESPAWN_TIME_MS, SERVER_TICK_DT, CLIENT_TICK_DT,
   AMMO_PICKUP_INTERVAL, AMMO_PICKUP_AMOUNT,
   PICKUP_COLLECT_RADIUS, PICKUP_DESPAWN_TIME,
+  WEAPON_PICKUP_RESPAWN_TIME, WEAPON_PICKUP_COLLECT_RADIUS,
 } from '../shared/constants.js';
 
 export class ServerWorld {
@@ -20,6 +21,15 @@ export class ServerWorld {
     this.pickupSpawnTimer = AMMO_PICKUP_INTERVAL;
     this.events = []; // events generated this tick
     this.tick = 0;
+
+    // Weapon pickup spawn tracking
+    this.weaponSpawnPoints = (mapData.weaponPickups || []).map(wp => ({
+      x: wp.x,
+      y: wp.y,
+      weapon: wp.weapon,
+      active: false,
+      respawnTimer: 5000, // initial spawn delay
+    }));
   }
 
   addPlayer(session) {
@@ -94,7 +104,14 @@ export class ServerWorld {
           stepPlayer(entity, inp, CLIENT_TICK_DT, this.mapPolygons, this.mapData.bounds);
 
           if (entity.fireCooldown > 0) entity.fireCooldown -= CLIENT_TICK_DT;
-          if (inp.fire) this._tryFire(entity, inp.aimAngle);
+          if (inp.fire) {
+            const wep = this._getWeaponDef(entity);
+            const isSemi = wep && wep.firing.mode === 'semi';
+            if (!isSemi || !entity._prevFire) {
+              this._tryFire(entity, inp.aimAngle);
+            }
+          }
+          entity._prevFire = inp.fire;
 
           if (inp.reload && !entity.reloading) {
             const wep = this._getWeaponDef(entity);
@@ -126,6 +143,7 @@ export class ServerWorld {
         stepPlayer(entity, idle, SERVER_TICK_DT, this.mapPolygons, this.mapData.bounds);
 
         if (entity.fireCooldown > 0) entity.fireCooldown -= SERVER_TICK_DT;
+        entity._prevFire = false;
         if (entity.reloading) {
           entity.reloadTimer -= SERVER_TICK_DT * 1000;
           if (entity.reloadTimer <= 0) {
@@ -148,62 +166,15 @@ export class ServerWorld {
       const proj = this.projectiles[i];
       const result = stepProjectile(proj, SERVER_TICK_DT, this.mapPolygons, playersArr);
 
+      // Process all hits (piercing projectiles can hit multiple players per tick)
+      for (let h = 0; h < result.hitPlayerIds.length; h++) {
+        const victimId = result.hitPlayerIds[h];
+        const hitPos = result.hitPositions[h];
+        this._applyProjectileHit(proj, victimId, hitPos);
+      }
+
       if (!result.alive) {
         this.projectiles.splice(i, 1);
-
-        if (result.hitPlayerId != null) {
-          const victim = this.players.get(result.hitPlayerId);
-          if (victim) {
-            victim.hp -= proj.damage;
-
-            // Hit event
-            const hitDir = { x: proj.vx, y: proj.vy };
-            const len = Math.sqrt(hitDir.x * hitDir.x + hitDir.y * hitDir.y) || 1;
-            this.events.push({
-              event: 'hit',
-              x: result.hitPos.x,
-              y: result.hitPos.y,
-              dirX: hitDir.x / len,
-              dirY: hitDir.y / len,
-            });
-
-            if (victim.hp <= 0) {
-              victim.hp = 0;
-              victim.state = PLAYER_STATE.DEAD;
-              victim.respawnTimer = RESPAWN_TIME_MS;
-              victim.deaths++;
-
-              const killer = this.players.get(proj.ownerId);
-              if (killer) killer.kills++;
-              this.events.push({
-                event: 'kill',
-                killerId: proj.ownerId,
-                killerName: killer ? killer.name : '?',
-                victimId: victim.id,
-                victimName: victim.name,
-                victimX: victim.x,
-                victimY: victim.y,
-                victimColor: victim.color,
-                dirX: hitDir.x / len,
-                dirY: hitDir.y / len,
-                weapon: proj.weapon,
-              });
-
-              // Drop victim's ammo as pickup
-              const dropAmount = victim.ammo + victim.reserveAmmo;
-              if (dropAmount > 0) {
-                this.pickups.push({
-                  id: this.nextPickupId++,
-                  type: 'ammo',
-                  amount: dropAmount,
-                  x: victim.x,
-                  y: victim.y - 20,
-                  lifetime: PICKUP_DESPAWN_TIME,
-                });
-              }
-            }
-          }
-        }
       }
     }
 
@@ -224,8 +195,30 @@ export class ServerWorld {
       });
     }
 
+    // Weapon pickup spawn management
+    for (const sp of this.weaponSpawnPoints) {
+      if (!sp.active) {
+        sp.respawnTimer -= SERVER_TICK_DT * 1000;
+        if (sp.respawnTimer <= 0) {
+          sp.active = true;
+          sp.pickupId = this.nextPickupId++;
+          this.pickups.push({
+            id: sp.pickupId,
+            type: 'weapon',
+            weaponId: sp.weapon,
+            amount: 0,
+            x: sp.x,
+            y: sp.y,
+            lifetime: Infinity,
+            _spawnPointRef: sp,
+          });
+        }
+      }
+    }
+
     // Update pickups: check collection & despawn
     const collectRadiusSq = PICKUP_COLLECT_RADIUS * PICKUP_COLLECT_RADIUS;
+    const weapRadiusSq = WEAPON_PICKUP_COLLECT_RADIUS * WEAPON_PICKUP_COLLECT_RADIUS;
     for (let i = this.pickups.length - 1; i >= 0; i--) {
       const pickup = this.pickups[i];
       pickup.lifetime -= SERVER_TICK_DT * 1000;
@@ -239,24 +232,91 @@ export class ServerWorld {
         if (player.state !== PLAYER_STATE.ALIVE) continue;
         const dx = player.x - pickup.x;
         const dy = player.y - pickup.y;
-        if (dx * dx + dy * dy < collectRadiusSq) {
-          // Fill magazine first, then reserve
-          const wep = this._getWeaponDef(player);
-          const magSize = wep ? wep.ammo.magazineSize : 30;
-          const magSpace = magSize - player.ammo;
-          const toMag = Math.min(pickup.amount, magSpace);
-          player.ammo += toMag;
-          player.reserveAmmo += pickup.amount - toMag;
-          this.events.push({
-            event: 'ammo_pickup',
-            playerId: player.id,
-            amount: pickup.amount,
-            x: pickup.x,
-            y: pickup.y,
-          });
-          this.pickups.splice(i, 1);
-          collected = true;
-          break;
+        const distSq = dx * dx + dy * dy;
+
+        if (pickup.type === 'weapon') {
+          if (distSq < weapRadiusSq) {
+            // Don't pick up if already holding this weapon
+            if (player.weapon === pickup.weaponId) continue;
+
+            // Drop current weapon's ammo as ammo pickup
+            if (player.weapon === 'assault_rifle') {
+              const dropAmount = player.ammo + player.reserveAmmo;
+              if (dropAmount > 0) {
+                this.pickups.push({
+                  id: this.nextPickupId++,
+                  type: 'ammo',
+                  amount: dropAmount,
+                  x: player.x,
+                  y: player.y - 20,
+                  lifetime: PICKUP_DESPAWN_TIME,
+                });
+              }
+            } else {
+              // Drop non-AR weapon as weapon pickup
+              this.pickups.push({
+                id: this.nextPickupId++,
+                type: 'weapon',
+                weaponId: player.weapon,
+                amount: 0,
+                x: player.x,
+                y: player.y - 20,
+                lifetime: PICKUP_DESPAWN_TIME,
+              });
+            }
+
+            // Equip new weapon
+            player.weapon = pickup.weaponId;
+            const newWep = this._getWeaponDef(player);
+            if (newWep) {
+              player.ammo = newWep.ammo.magazineSize;
+              player.reserveAmmo = newWep.ammo.reserveMax;
+            }
+            player.reloading = false;
+            player.reloadTimer = 0;
+            player.fireCooldown = 0;
+
+            this.events.push({
+              event: 'weapon_pickup',
+              playerId: player.id,
+              weaponId: pickup.weaponId,
+              x: pickup.x,
+              y: pickup.y,
+            });
+
+            // Handle spawn point respawn timer
+            if (pickup._spawnPointRef) {
+              pickup._spawnPointRef.active = false;
+              pickup._spawnPointRef.respawnTimer = WEAPON_PICKUP_RESPAWN_TIME;
+            }
+
+            this.pickups.splice(i, 1);
+            collected = true;
+            break;
+          }
+        } else {
+          // Ammo pickup
+          if (distSq < collectRadiusSq) {
+            const wep = this._getWeaponDef(player);
+            const magSize = wep ? wep.ammo.magazineSize : 30;
+            const magSpace = magSize - player.ammo;
+            const toMag = Math.min(pickup.amount, magSpace);
+            player.ammo += toMag;
+            player.reserveAmmo += pickup.amount - toMag;
+            // Cap reserve ammo
+            const reserveMax = wep ? wep.ammo.reserveMax : 120;
+            if (player.reserveAmmo > reserveMax) player.reserveAmmo = reserveMax;
+            this.events.push({
+              event: 'ammo_pickup',
+              playerId: player.id,
+              amount: pickup.amount,
+              x: pickup.x,
+              y: pickup.y,
+            });
+            this.pickups.splice(i, 1);
+            collected = true;
+            break;
+          }
         }
       }
       if (collected) continue;
@@ -297,6 +357,8 @@ export class ServerWorld {
       gravity: wep.projectile.gravity || false,
       radius: wep.projectile.radius,
       weapon: wep.id,
+      piercing: wep.projectile.piercing || false,
+      _hitIds: [],
     });
 
     // Apply recoil knockback (opposite direction of shot)
@@ -304,6 +366,71 @@ export class ServerWorld {
     if (kb > 0) {
       entity.vx -= Math.cos(angle) * kb;
       entity.vy -= Math.sin(angle) * kb;
+    }
+  }
+
+  _applyProjectileHit(proj, victimId, hitPos) {
+    const victim = this.players.get(victimId);
+    if (!victim) return;
+
+    victim.hp -= proj.damage;
+
+    const hitDir = { x: proj.vx, y: proj.vy };
+    const len = Math.sqrt(hitDir.x * hitDir.x + hitDir.y * hitDir.y) || 1;
+    this.events.push({
+      event: 'hit',
+      x: hitPos.x,
+      y: hitPos.y,
+      dirX: hitDir.x / len,
+      dirY: hitDir.y / len,
+    });
+
+    if (victim.hp <= 0) {
+      victim.hp = 0;
+      victim.state = PLAYER_STATE.DEAD;
+      victim.respawnTimer = RESPAWN_TIME_MS;
+      victim.deaths++;
+
+      const killer = this.players.get(proj.ownerId);
+      if (killer) killer.kills++;
+      this.events.push({
+        event: 'kill',
+        killerId: proj.ownerId,
+        killerName: killer ? killer.name : '?',
+        victimId: victim.id,
+        victimName: victim.name,
+        victimX: victim.x,
+        victimY: victim.y,
+        victimColor: victim.color,
+        dirX: hitDir.x / len,
+        dirY: hitDir.y / len,
+        weapon: proj.weapon,
+      });
+
+      // Drop victim's weapon/ammo on death
+      if (victim.weapon !== 'assault_rifle') {
+        this.pickups.push({
+          id: this.nextPickupId++,
+          type: 'weapon',
+          weaponId: victim.weapon,
+          amount: 0,
+          x: victim.x,
+          y: victim.y - 20,
+          lifetime: PICKUP_DESPAWN_TIME,
+        });
+      } else {
+        const dropAmount = victim.ammo + victim.reserveAmmo;
+        if (dropAmount > 0) {
+          this.pickups.push({
+            id: this.nextPickupId++,
+            type: 'ammo',
+            amount: dropAmount,
+            x: victim.x,
+            y: victim.y - 20,
+            lifetime: PICKUP_DESPAWN_TIME,
+          });
+        }
+      }
     }
   }
 
@@ -324,6 +451,8 @@ export class ServerWorld {
     entity.reloading = false;
     entity.fireCooldown = 0;
 
+    // Always respawn with assault rifle
+    entity.weapon = 'assault_rifle';
     const wep = this._getWeaponDef(entity);
     if (wep) {
       entity.ammo = wep.ammo.magazineSize;
@@ -361,6 +490,7 @@ export class ServerWorld {
         color: e.color,
         kills: e.kills,
         deaths: e.deaths,
+        weapon: e.weapon,
       });
     }
 
@@ -380,6 +510,7 @@ export class ServerWorld {
       amount: p.amount,
       x: Math.round(p.x),
       y: Math.round(p.y),
+      weaponId: p.weaponId || null,
     }));
 
     return { players, projectiles, pickups, tick: this.tick };

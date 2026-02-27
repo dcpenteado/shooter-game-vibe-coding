@@ -10,6 +10,7 @@ export class HUD {
     this.leaderboard = document.getElementById('hud-leaderboard');
     this.reloadBar = document.getElementById('reload-bar');
     this.reloadBarFill = document.getElementById('reload-bar-fill');
+    this.weaponName = document.getElementById('weapon-name');
     this.kills = [];
     this._lastLbHtml = '';
   }
@@ -36,10 +37,16 @@ export class HUD {
     // Ammo
     if (player.ammo !== undefined) {
       this.ammoCurrent.textContent = player.ammo;
-      this.ammoCurrent.classList.toggle('low', player.ammo <= 5 && player.ammo > 0);
+      const lowThreshold = (player.magazineSize && player.magazineSize <= 5) ? 0 : 5;
+      this.ammoCurrent.classList.toggle('low', player.ammo <= lowThreshold && player.ammo > 0);
     }
     if (player.reserveAmmo !== undefined) {
       this.ammoReserve.textContent = player.reserveAmmo;
+    }
+
+    // Weapon name
+    if (this.weaponName && player.weaponName !== undefined) {
+      this.weaponName.textContent = player.weaponName;
     }
 
     // Reload bar

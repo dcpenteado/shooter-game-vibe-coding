@@ -16,6 +16,10 @@
     { "x": 600, "y": 1000 },
     { "x": 2600, "y": 1000 }
   ],
+  "weaponPickups": [
+    { "x": 1600, "y": 720, "weapon": "awm" },
+    { "x": 275, "y": 870, "weapon": "awm" }
+  ],
   "collisionPolygons": [
     {
       "id": "ground",

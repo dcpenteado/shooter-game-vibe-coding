@@ -35,6 +35,8 @@ export const AMMO_PICKUP_INTERVAL = 20000;  // ms between periodic ammo spawns
 export const AMMO_PICKUP_AMOUNT = 30;       // reserve bullets per periodic pickup
 export const PICKUP_COLLECT_RADIUS = 30;    // px distance to collect
 export const PICKUP_DESPAWN_TIME = 60000;   // ms until uncollected pickup despawns
+export const WEAPON_PICKUP_RESPAWN_TIME = 30000; // ms until weapon pickup respawns after collection
+export const WEAPON_PICKUP_COLLECT_RADIUS = 35;  // px distance to collect weapon pickup
 
 // Rooms
 export const MAX_PLAYERS_PER_ROOM = 16;
