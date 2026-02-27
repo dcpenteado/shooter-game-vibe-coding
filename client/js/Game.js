@@ -191,6 +191,17 @@ export class Game {
       kills: p.kills || 0,
       deaths: p.deaths || 0,
     }));
+
+    // Determine kill leader (must have 3+ kills to earn the crown)
+    let leaderId = null;
+    let maxKills = 0;
+    for (const p of snap.players) {
+      if ((p.kills || 0) > maxKills) {
+        maxKills = p.kills;
+        leaderId = p.id;
+      }
+    }
+    this.renderer.leaderId = maxKills >= 3 ? leaderId : null;
   }
 
   _onEvent(evt) {

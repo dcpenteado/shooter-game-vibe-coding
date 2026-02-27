@@ -57,11 +57,11 @@ export class HUD {
     const rankClasses = ['gold', 'silver', 'bronze'];
     const rankLabels = ['1st', '2nd', '3rd'];
 
-    // Pistol icon (kills)
-    const pistolSvg = '<svg class="lb-stat-icon lb-kills-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h14"/><path d="M16 7l2-2 4 4-2 2"/><path d="M16 7l-1 5"/><path d="M9 12v4c0 1 1 2 2 2h1"/><path d="M13 12v6"/></svg>';
+    // Gun icon — Font Awesome "gun" (filled silhouette, CC BY 4.0)
+    const pistolSvg = '<svg class="lb-stat-icon lb-kills-icon" viewBox="0 0 576 512" fill="currentColor"><path d="M528 56c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 8L32 64C14.3 64 0 78.3 0 96L0 208c0 17.7 14.3 32 32 32l10 0c20.8 0 36.1 19.6 31 39.8L33 440.2c-2.4 9.6-.2 19.7 5.8 27.5S54.1 480 64 480l96 0c14.7 0 27.5-10 31-24.2L217 352l104.5 0c23.7 0 44.8-14.9 52.7-37.2L400.9 240l31.1 0c8.5 0 16.6-3.4 22.6-9.4L477.3 208l66.7 0c17.7 0 32-14.3 32-32l0-80c0-17.7-14.3-32-32-32l-16 0 0-8zM321.4 304L229 304l16-64 105 0-21 58.7c-1.1 3.2-4.2 5.3-7.5 5.3zM80 128l384 0c8.8 0 16 7.2 16 16s-7.2 16-16 16L80 160c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg>';
 
-    // Skull icon (deaths)
-    const skullSvg = '<svg class="lb-stat-icon lb-deaths-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="7"/><circle cx="9.5" cy="9" r="1.5" fill="currentColor"/><circle cx="14.5" cy="9" r="1.5" fill="currentColor"/><path d="M10 14h4"/><path d="M12 14v3"/><path d="M10.5 14v2"/><path d="M13.5 14v2"/></svg>';
+    // Skull icon — Lucide "skull" (stroke outline, ISC license)
+    const skullSvg = '<svg class="lb-stat-icon lb-deaths-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12.5 17-.5-1-.5 1h1z"/><path d="M15 22a1 1 0 0 0 1-1v-1a2 2 0 0 0 1.56-3.25 8 8 0 1 0-11.12 0A2 2 0 0 0 8 20v1a1 1 0 0 0 1 1z"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="12" r="1"/></svg>';
 
     const esc = (s) => {
       const el = document.createElement('span');
@@ -91,7 +91,7 @@ export class HUD {
     const now = Date.now();
     this.kills = this.kills.filter(k => now - k.time < 5000);
 
-    const skullSvg = '<svg class="kill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="7"/><circle cx="9" cy="9" r="1.5" fill="currentColor"/><circle cx="15" cy="9" r="1.5" fill="currentColor"/><path d="M10 14h4"/><path d="M9 18l3 3 3-3"/></svg>';
+    const skullSvg = '<svg class="kill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12.5 17-.5-1-.5 1h1z"/><path d="M15 22a1 1 0 0 0 1-1v-1a2 2 0 0 0 1.56-3.25 8 8 0 1 0-11.12 0A2 2 0 0 0 8 20v1a1 1 0 0 0 1 1z"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="12" r="1"/></svg>';
 
     this.killfeed.innerHTML = this.kills
       .map(k => {

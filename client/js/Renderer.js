@@ -16,6 +16,7 @@ export class Renderer {
     this.spriteAnimator = null;
     this.spritesReady = false;
     this.deathFragments = new DeathFragments();
+    this.leaderId = null;
   }
 
   async init(canvas) {
@@ -132,7 +133,13 @@ export class Renderer {
       if (this.spritesReady && this.spriteAnimator) {
         const spriteEntry = this.spriteAnimator.createPlayerSprite();
         if (spriteEntry) {
-          entry = { mode: 'sprite', ...spriteEntry, parentContainer };
+          // Create crown graphics (hidden by default, shown for kill leader)
+          const crownGfx = new Graphics();
+          crownGfx.visible = false;
+          this._drawCrownShape(crownGfx, 0, -40);
+          spriteEntry.container.addChild(crownGfx);
+
+          entry = { mode: 'sprite', ...spriteEntry, crownGfx, parentContainer };
           parentContainer.addChild(spriteEntry.container);
           this.playerGfx.set(id, entry);
           return entry;
@@ -161,6 +168,7 @@ export class Renderer {
     const entry = this._getPlayerEntry(player.id, parentContainer);
 
     if (player.state === 1) {
+      if (entry.crownGfx) entry.crownGfx.visible = false;
       if (entry.mode === 'sprite') {
         // On first frame of death: hide sprite and spawn fragments
         if (!entry.fragmentSpawned) {
@@ -188,19 +196,27 @@ export class Renderer {
       entry.container.visible = true;
     }
 
+    const isLeader = this.leaderId != null && player.id === this.leaderId;
+
     if (entry.mode === 'sprite') {
       this.spriteAnimator.updatePlayerSprite(entry, player);
+      if (entry.crownGfx) entry.crownGfx.visible = isLeader;
     } else {
-      this._drawPlayerStickFigure(entry.graphics, player, isLocal);
+      this._drawPlayerStickFigure(entry.graphics, player, isLocal, isLeader);
     }
   }
 
   /** Draw a player as stick-figure (fallback when sprites not loaded) */
-  _drawPlayerStickFigure(g, player, isLocal) {
+  _drawPlayerStickFigure(g, player, isLocal, isLeader = false) {
     g.clear();
 
     const { x, y, aimAngle } = player;
     const color = isLocal ? '#44cc44' : (player.color || '#cc4444');
+
+    // Crown for kill leader
+    if (isLeader) {
+      this._drawCrownShape(g, x, y - 40);
+    }
 
     // Head
     g.circle(x, y - 22, 7);
@@ -309,6 +325,38 @@ export class Renderer {
       g.lineTo(backX + 4.5, backY + 7);
       g.fill('#ffffcc');
     }
+  }
+
+  /** Draw a golden crown shape at the given center position */
+  _drawCrownShape(g, cx, cy) {
+    // Golden glow aura (30% smaller)
+    g.circle(cx, cy + 1.4, 10);
+    g.fill({ color: '#ffd700', alpha: 0.08 });
+    g.circle(cx, cy + 1.4, 7);
+    g.fill({ color: '#ffd700', alpha: 0.12 });
+    g.circle(cx, cy + 1.4, 4.2);
+    g.fill({ color: '#ffea00', alpha: 0.15 });
+
+    // Crown body (Font Awesome crown proportions, 30% smaller)
+    const w = 12.6;
+    const base = cy + 2.8;
+    const bandH = 1.8;
+
+    g.moveTo(cx - w / 2, base);                // bottom-left
+    g.lineTo(cx - w / 2 - 1.4, cy - 2.8);     // left peak (outer)
+    g.lineTo(cx - w / 4, cy + 0.7);            // left valley
+    g.lineTo(cx, cy - 4.2);                    // center peak (tallest)
+    g.lineTo(cx + w / 4, cy + 0.7);            // right valley
+    g.lineTo(cx + w / 2 + 1.4, cy - 2.8);     // right peak (outer)
+    g.lineTo(cx + w / 2, base);                // bottom-right
+    g.closePath();
+    g.fill('#ffd700');
+    g.stroke({ width: 0.5, color: '#b8860b' });
+
+    // Crown band at bottom
+    g.roundRect(cx - w / 2, base, w, bandH, 0.7);
+    g.fill('#daa520');
+    g.stroke({ width: 0.4, color: '#b8860b' });
   }
 
   /** Draw projectile with configurable trail and glow */
