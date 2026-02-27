@@ -8,6 +8,7 @@ export class Renderer {
     // Reusable graphics objects (one per layer, cleared each frame)
     this.projGraphics = null;
     this.particleGraphics = null;
+    this.crosshairGraphics = null;
     this.playerGfx = new Map(); // id -> { graphics, container }
   }
 
@@ -37,6 +38,10 @@ export class Renderer {
 
     this.particleGraphics = new Graphics();
     this.layers.particles.addChild(this.particleGraphics);
+
+    // Crosshair layer (screen-space, not affected by camera)
+    this.crosshairGraphics = new Graphics();
+    this.app.stage.addChild(this.crosshairGraphics);
 
     return this;
   }
@@ -188,10 +193,47 @@ export class Renderer {
     g.fill({ color, alpha: Math.max(0, alpha) });
   }
 
+  /** Draw crosshair at screen position */
+  drawCrosshair(screenX, screenY) {
+    const g = this.crosshairGraphics;
+    g.clear();
+
+    const size = 10;
+    const gap = 4;
+    const thickness = 2;
+    const color = '#ffffff';
+    const alpha = 0.5;
+
+    // Top line
+    g.moveTo(screenX, screenY - gap);
+    g.lineTo(screenX, screenY - gap - size);
+    g.stroke({ width: thickness, color, alpha });
+
+    // Bottom line
+    g.moveTo(screenX, screenY + gap);
+    g.lineTo(screenX, screenY + gap + size);
+    g.stroke({ width: thickness, color, alpha });
+
+    // Left line
+    g.moveTo(screenX - gap, screenY);
+    g.lineTo(screenX - gap - size, screenY);
+    g.stroke({ width: thickness, color, alpha });
+
+    // Right line
+    g.moveTo(screenX + gap, screenY);
+    g.lineTo(screenX + gap + size, screenY);
+    g.stroke({ width: thickness, color, alpha });
+
+    // Center dot
+    g.circle(screenX, screenY, 1.5);
+    g.fill({ color: '#ff3333', alpha: 0.5 });
+  }
+
   /** Clear per-frame graphics */
   clearFrame() {
     this.projGraphics.clear();
     this.particleGraphics.clear();
+    this.crosshairGraphics.clear();
 
     // Mark all player gfx as unused this frame
     this._activePlayerIds = new Set();

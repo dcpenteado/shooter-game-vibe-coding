@@ -16,8 +16,16 @@ export class InputHandler {
     };
     this._onKeyUp = (e) => this.keys.delete(e.code);
     this._onMouseMove = (e) => {
-      this.mouseX = e.clientX;
-      this.mouseY = e.clientY;
+      if (document.pointerLockElement === canvas) {
+        this.mouseX += e.movementX;
+        this.mouseY += e.movementY;
+        // Clamp to viewport
+        this.mouseX = Math.max(0, Math.min(this.mouseX, window.innerWidth));
+        this.mouseY = Math.max(0, Math.min(this.mouseY, window.innerHeight));
+      } else {
+        this.mouseX = e.clientX;
+        this.mouseY = e.clientY;
+      }
     };
     this._onMouseDown = (e) => {
       if (e.button === 0) this.mouseDown = true;

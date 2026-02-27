@@ -333,6 +333,9 @@ export class Game {
     this.particles.draw(this.renderer);
     this.ragdolls.draw(this.renderer);
 
+    // Draw crosshair at mouse screen position
+    this.renderer.drawCrosshair(this.input.mouseX, this.input.mouseY);
+
     // Update HUD
     if (this.localPlayer) {
       this.hud.update({
