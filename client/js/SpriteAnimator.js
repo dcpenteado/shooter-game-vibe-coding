@@ -94,7 +94,7 @@ export class SpriteAnimator {
   getAnimationState(player) {
     if (player.state === 1) return ANIM_STATE.IDLE;
 
-    if (player.onGround && Math.abs(player.vx) > 15) {
+    if (player.onGround && player.moveDir !== 0 && Math.abs(player.vx) > 15) {
       return ANIM_STATE.RUN;
     }
 

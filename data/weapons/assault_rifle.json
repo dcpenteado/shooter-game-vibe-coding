@@ -23,7 +23,8 @@
   "recoil": {
     "perShot": 0.015,
     "recovery": 0.03,
-    "maxAccumulated": 0.12
+    "maxAccumulated": 0.12,
+    "knockback": 25
   },
   "rendering": {
     "tracerColor": "#ffdd44",

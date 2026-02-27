@@ -232,22 +232,13 @@ export class Game {
     );
     rawInput.aimAngle = aimAngle;
     this.localPlayer.aimAngle = aimAngle;
+    this.localPlayer.moveDir = rawInput.moveDir;
     this.localPlayer._tickTime = (this.localPlayer._tickTime || 0) + dt;
 
     // Client-side prediction
     stepPlayer(this.localPlayer, rawInput, dt, this.mapPolygons, this.mapData.bounds);
 
-    // Store prediction
-    this.prediction.push(rawInput.seq, rawInput, {
-      x: this.localPlayer.x,
-      y: this.localPlayer.y,
-      vx: this.localPlayer.vx,
-      vy: this.localPlayer.vy,
-      onGround: this.localPlayer.onGround,
-      fuel: this.localPlayer.fuel,
-    });
-
-    // Handle firing (client visual + send to server)
+    // Handle firing (client visual + recoil knockback)
     if (rawInput.fire && this.localPlayer.fireCooldown <= 0 && this.localPlayer.ammo > 0) {
       const wep = this.weaponDefs[this.localPlayer.weapon];
       if (wep) {
@@ -258,8 +249,25 @@ export class Game {
         const muzzleX = this.localPlayer.x + Math.cos(aimAngle) * 24;
         const muzzleY = (this.localPlayer.y - 10) + Math.sin(aimAngle) * 24;
         this.particles.emitMuzzleFlash(muzzleX, muzzleY);
+
+        // Apply recoil knockback (opposite direction of shot)
+        const kb = wep.recoil?.knockback || 0;
+        if (kb > 0) {
+          this.localPlayer.vx -= Math.cos(aimAngle) * kb;
+          this.localPlayer.vy -= Math.sin(aimAngle) * kb;
+        }
       }
     }
+
+    // Store prediction (after knockback so reconciliation is correct)
+    this.prediction.push(rawInput.seq, rawInput, {
+      x: this.localPlayer.x,
+      y: this.localPlayer.y,
+      vx: this.localPlayer.vx,
+      vy: this.localPlayer.vy,
+      onGround: this.localPlayer.onGround,
+      fuel: this.localPlayer.fuel,
+    });
     if (this.localPlayer.fireCooldown > 0) {
       this.localPlayer.fireCooldown -= dt;
     }

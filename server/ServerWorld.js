@@ -294,6 +294,13 @@ export class ServerWorld {
       radius: wep.projectile.radius,
       weapon: wep.id,
     });
+
+    // Apply recoil knockback (opposite direction of shot)
+    const kb = wep.recoil?.knockback || 0;
+    if (kb > 0) {
+      entity.vx -= Math.cos(angle) * kb;
+      entity.vy -= Math.sin(angle) * kb;
+    }
   }
 
   _getWeaponDef(entity) {
