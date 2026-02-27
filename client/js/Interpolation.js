@@ -49,6 +49,7 @@ export class Interpolation {
       fuel: b.state.fuel,
       state: b.state.state,
       jetting: b.state.jetting,
+      onGround: b.state.onGround,
       name: b.state.name,
       color: b.state.color,
     };

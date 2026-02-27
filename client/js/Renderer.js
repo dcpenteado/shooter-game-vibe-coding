@@ -1,4 +1,5 @@
-import { Application, Graphics, Container } from 'pixi.js';
+import { Application, Graphics, Container, AnimatedSprite, Assets } from 'pixi.js';
+import { SpriteAnimator } from './SpriteAnimator.js';
 
 export class Renderer {
   constructor() {
@@ -10,7 +11,9 @@ export class Renderer {
     this.pickupGraphics = null;
     this.particleGraphics = null;
     this.crosshairGraphics = null;
-    this.playerGfx = new Map(); // id -> { graphics, container }
+    this.playerGfx = new Map(); // id -> { mode, ... }
+    this.spriteAnimator = null;
+    this.spritesReady = false;
   }
 
   async init(canvas) {
@@ -88,28 +91,93 @@ export class Renderer {
     }
   }
 
-  /** Get or create a Graphics for a player (reused across frames) */
-  _getPlayerGfx(id, container) {
-    let entry = this.playerGfx.get(id);
-    if (!entry) {
-      const graphics = new Graphics();
-      entry = { graphics, container };
-      this.playerGfx.set(id, entry);
-      container.addChild(graphics);
-    } else if (entry.container !== container) {
-      // Player moved layers (shouldn't happen but handle it)
-      entry.container.removeChild(entry.graphics);
-      container.addChild(entry.graphics);
-      entry.container = container;
+  /** Load character sprites (async, non-blocking) */
+  async initSprites(charDef) {
+    if (!charDef.sprites) {
+      console.log('Renderer: No sprite config, using stick figures');
+      return;
     }
-    return entry.graphics;
+
+    this.spriteAnimator = new SpriteAnimator(charDef.sprites);
+    this.spritesReady = await this.spriteAnimator.loadTextures();
+
+    if (!this.spritesReady) {
+      console.warn('Renderer: Sprite loading failed, falling back to stick figures');
+      this.spriteAnimator = null;
+    }
   }
 
-  /** Draw a player (stick-figure) */
-  drawPlayer(container, player, isLocal) {
-    const g = this._getPlayerGfx(player.id, container);
+  /** Clear all player gfx entries (force recreate with sprites after loading) */
+  clearAllPlayerGfx() {
+    for (const [id, entry] of this.playerGfx) {
+      if (entry.mode === 'sprite') {
+        entry.parentContainer.removeChild(entry.container);
+        entry.container.destroy({ children: true });
+      } else {
+        entry.graphics.clear();
+        entry.container.removeChild(entry.graphics);
+        entry.graphics.destroy();
+      }
+    }
+    this.playerGfx.clear();
+  }
+
+  /** Get or create a rendering entry for a player (sprite or stick figure) */
+  _getPlayerEntry(id, parentContainer) {
+    let entry = this.playerGfx.get(id);
+
+    if (!entry) {
+      if (this.spritesReady && this.spriteAnimator) {
+        const spriteEntry = this.spriteAnimator.createPlayerSprite();
+        if (spriteEntry) {
+          entry = { mode: 'sprite', ...spriteEntry, parentContainer };
+          parentContainer.addChild(spriteEntry.container);
+          this.playerGfx.set(id, entry);
+          return entry;
+        }
+      }
+      // Fallback: stick figure
+      const graphics = new Graphics();
+      entry = { mode: 'graphics', graphics, container: parentContainer };
+      parentContainer.addChild(graphics);
+      this.playerGfx.set(id, entry);
+    } else if (entry.mode === 'graphics' && entry.container !== parentContainer) {
+      entry.container.removeChild(entry.graphics);
+      parentContainer.addChild(entry.graphics);
+      entry.container = parentContainer;
+    } else if (entry.mode === 'sprite' && entry.parentContainer !== parentContainer) {
+      entry.parentContainer.removeChild(entry.container);
+      parentContainer.addChild(entry.container);
+      entry.parentContainer = parentContainer;
+    }
+
+    return entry;
+  }
+
+  /** Draw a player (sprite or stick-figure fallback) */
+  drawPlayer(parentContainer, player, isLocal) {
+    const entry = this._getPlayerEntry(player.id, parentContainer);
+
+    if (player.state === 1) {
+      if (entry.mode === 'sprite') {
+        entry.container.visible = false;
+      } else {
+        entry.graphics.clear();
+      }
+      return;
+    }
+
+    if (entry.mode === 'sprite') {
+      entry.container.visible = true;
+      this.spriteAnimator.updatePlayerSprite(entry, player);
+    } else {
+      this._drawPlayerStickFigure(entry.graphics, player, isLocal);
+    }
+  }
+
+  /** Draw a player as stick-figure (fallback when sprites not loaded) */
+  _drawPlayerStickFigure(g, player, isLocal) {
     g.clear();
-    if (player.state === 1) return;
 
     const { x, y, aimAngle } = player;
     const color = isLocal ? '#44cc44' : (player.color || '#cc4444');
@@ -284,9 +352,14 @@ export class Renderer {
     if (!this._activePlayerIds) return;
     for (const [id, entry] of this.playerGfx) {
       if (!this._activePlayerIds.has(id)) {
-        entry.graphics.clear();
-        entry.container.removeChild(entry.graphics);
-        entry.graphics.destroy();
+        if (entry.mode === 'sprite') {
+          entry.parentContainer.removeChild(entry.container);
+          entry.container.destroy({ children: true });
+        } else {
+          entry.graphics.clear();
+          entry.container.removeChild(entry.graphics);
+          entry.graphics.destroy();
+        }
         this.playerGfx.delete(id);
       }
     }
@@ -296,7 +369,12 @@ export class Renderer {
   removePlayer(id) {
     const entry = this.playerGfx.get(id);
     if (entry) {
-      entry.graphics.destroy();
+      if (entry.mode === 'sprite') {
+        entry.parentContainer.removeChild(entry.container);
+        entry.container.destroy({ children: true });
+      } else {
+        entry.graphics.destroy();
+      }
       this.playerGfx.delete(id);
     }
   }

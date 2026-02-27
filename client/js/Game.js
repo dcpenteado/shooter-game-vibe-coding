@@ -76,6 +76,11 @@ export class Game {
     this.renderer.drawMap(this.mapData);
     this.camera.setMapBounds(this.mapData.bounds.width, this.mapData.bounds.height);
 
+    // Load character sprites (async, game starts with stick figures immediately)
+    this.renderer.initSprites(this.charDef).then(() => {
+      this.renderer.clearAllPlayerGfx();
+    });
+
     // Create local player
     const spawn = this.mapData.spawnPoints[0];
     this.localPlayer = createPlayerEntity(
@@ -146,6 +151,7 @@ export class Game {
           fuel: p.fuel,
           state: p.state,
           jetting: p.jetting,
+          onGround: p.onGround,
           name: p.name || 'Player',
           color: p.color || '#cc4444',
         });

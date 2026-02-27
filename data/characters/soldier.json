@@ -34,6 +34,25 @@
     "limbLength": 12,
     "limbWidth": 3
   },
+  "sprites": {
+    "basePath": "assets/characters/soldier",
+    "scale": 3.0,
+    "anchor": { "x": 0.5, "y": 0.5 },
+    "armOffset": { "x": 0, "y": -10 },
+    "animations": {
+      "idle": {
+        "frameCount": 4,
+        "speed": 0.08,
+        "loop": true
+      },
+      "run": {
+        "frameCount": 4,
+        "speed": 0.15,
+        "loop": true
+      }
+    },
+    "defaultAnimation": "idle"
+  },
   "ragdoll": {
     "segments": ["head", "torso", "armL", "armR", "legL", "legR"],
     "lingerTimeMs": 5000,
