@@ -171,8 +171,10 @@ export class ServerWorld {
               victim.hp = 0;
               victim.state = PLAYER_STATE.DEAD;
               victim.respawnTimer = RESPAWN_TIME_MS;
+              victim.deaths++;
 
               const killer = this.players.get(proj.ownerId);
+              if (killer) killer.kills++;
               this.events.push({
                 event: 'kill',
                 killerId: proj.ownerId,
@@ -357,6 +359,8 @@ export class ServerWorld {
         reserveAmmo: e.reserveAmmo,
         name: e.name,
         color: e.color,
+        kills: e.kills,
+        deaths: e.deaths,
       });
     }
 

@@ -7,7 +7,9 @@ export class HUD {
     this.ammoCurrent = document.getElementById('ammo-current');
     this.ammoReserve = document.getElementById('ammo-reserve');
     this.killfeed = document.getElementById('hud-killfeed');
+    this.leaderboard = document.getElementById('hud-leaderboard');
     this.kills = [];
+    this._lastLbHtml = '';
   }
 
   show() { this.el.classList.remove('hidden'); }
@@ -43,6 +45,46 @@ export class HUD {
     this.kills.push({ killer: killerName, victim: victimName, weapon, time: Date.now() });
     if (this.kills.length > 5) this.kills.shift();
     this._renderKillfeed();
+  }
+
+  updateLeaderboard(players) {
+    if (!this.leaderboard || !players || players.length === 0) return;
+
+    // Sort by kills descending, then by fewer deaths
+    const sorted = [...players].sort((a, b) => b.kills - a.kills || a.deaths - b.deaths);
+    const top3 = sorted.slice(0, 3);
+
+    const rankClasses = ['gold', 'silver', 'bronze'];
+    const rankLabels = ['1st', '2nd', '3rd'];
+
+    // Pistol icon (kills)
+    const pistolSvg = '<svg class="lb-stat-icon lb-kills-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h14"/><path d="M16 7l2-2 4 4-2 2"/><path d="M16 7l-1 5"/><path d="M9 12v4c0 1 1 2 2 2h1"/><path d="M13 12v6"/></svg>';
+
+    // Skull icon (deaths)
+    const skullSvg = '<svg class="lb-stat-icon lb-deaths-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="7"/><circle cx="9.5" cy="9" r="1.5" fill="currentColor"/><circle cx="14.5" cy="9" r="1.5" fill="currentColor"/><path d="M10 14h4"/><path d="M12 14v3"/><path d="M10.5 14v2"/><path d="M13.5 14v2"/></svg>';
+
+    const esc = (s) => {
+      const el = document.createElement('span');
+      el.textContent = s;
+      return el.innerHTML;
+    };
+
+    const html = top3.map((p, i) => {
+      return `<div class="lb-row">` +
+        `<span class="lb-rank ${rankClasses[i]}">${rankLabels[i]}</span>` +
+        `<span class="lb-name">${esc(p.name || '?')}</span>` +
+        `<span class="lb-stats">` +
+          `<span class="lb-stat">${pistolSvg}<span class="lb-kills-val">${p.kills}</span></span>` +
+          `<span class="lb-stat">${skullSvg}<span class="lb-deaths-val">${p.deaths}</span></span>` +
+        `</span>` +
+      `</div>`;
+    }).join('');
+
+    // Only update DOM if content changed (avoid re-triggering animations)
+    if (html !== this._lastLbHtml) {
+      this.leaderboard.innerHTML = html;
+      this._lastLbHtml = html;
+    }
   }
 
   _renderKillfeed() {

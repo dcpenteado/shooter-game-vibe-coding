@@ -184,6 +184,13 @@ export class Game {
     }
     this.projectiles = incoming;
     this.pickups = snap.pickups || [];
+
+    // Collect leaderboard data from all players in snapshot
+    this.leaderboardData = snap.players.map(p => ({
+      name: p.name || 'Player',
+      kills: p.kills || 0,
+      deaths: p.deaths || 0,
+    }));
   }
 
   _onEvent(evt) {
@@ -416,6 +423,9 @@ export class Game {
         ammo: this.localPlayer.ammo,
         reserveAmmo: this.localPlayer.reserveAmmo,
       });
+      if (this.leaderboardData) {
+        this.hud.updateLeaderboard(this.leaderboardData);
+      }
     }
   }
 }

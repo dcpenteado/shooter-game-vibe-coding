@@ -170,6 +170,8 @@ export function createPlayerEntity(id, charDef, spawnX, spawnY) {
     aimAngle: 0,
     state: 0,           // 0=alive, 1=dead, 2=respawning
     respawnTimer: 0,
+    kills: 0,
+    deaths: 0,
 
     // Weapon state
     weapon: charDef.combat?.primarySlot || 'assault_rifle',
