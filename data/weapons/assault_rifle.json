@@ -26,6 +26,11 @@
     "maxAccumulated": 0.12,
     "knockback": 25
   },
+  "sound": {
+    "fire": "assets/sounds/assault_rifle.mp3",
+    "reload": "assets/sounds/mag_reloading.mp3",
+    "volume": 0.2
+  },
   "muzzleOffset": { "shoulder": 4, "barrel": 30 },
   "rendering": {
     "tracerColor": "#ffdd44",

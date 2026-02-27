@@ -38,6 +38,13 @@ export class Game {
     this.serverTime = 0;
     this.nextProjectileId = 1;
 
+    // Audio pools per weapon (built on _onWelcome from weapon JSON)
+    this._weaponSounds = {};
+
+    // Death sound
+    this._deathSound = new Audio('assets/sounds/death.mp3');
+    this._deathSound.volume = 0.3;
+
     // Bind resize
     window.addEventListener('resize', () => {
       this.camera.resize(window.innerWidth, window.innerHeight);
@@ -86,6 +93,26 @@ export class Game {
       this.weaponDefs[w.id] = w;
     }
     this.charDef = data.characters[0];
+
+    // Build audio pools from weapon JSON sound config
+    this._weaponSounds = {};
+    for (const w of data.weapons) {
+      const entry = {};
+      const vol = w.sound?.volume ?? 0.4;
+      if (w.sound?.fire) {
+        entry.fire = { pool: Array.from({ length: 6 }, () => {
+          const a = new Audio(w.sound.fire);
+          a.volume = vol;
+          return a;
+        }), idx: 0 };
+      }
+      if (w.sound?.reload) {
+        const a = new Audio(w.sound.reload);
+        a.volume = vol;
+        entry.reload = a;
+      }
+      if (entry.fire || entry.reload) this._weaponSounds[w.id] = entry;
+    }
 
     // Draw map
     this.renderer.drawMap(this.mapData);
@@ -210,6 +237,10 @@ export class Game {
 
       // Blood particles
       this.particles.emitBlood(evt.victimX, evt.victimY, evt.dirX || 0, evt.dirY || 0);
+
+      // Death sound
+      this._deathSound.currentTime = 0;
+      this._deathSound.play().catch(() => {});
     }
     if (evt.event === 'hit') {
       this.particles.emitBlood(evt.x, evt.y, evt.dirX || 0, evt.dirY || 0);
@@ -293,6 +324,15 @@ export class Game {
         const muzzleY = (this.localPlayer.y + shoulder) + Math.sin(aimAngle) * barrel;
         this.particles.emitMuzzleFlash(muzzleX, muzzleY);
 
+        // Play gunfire sound from weapon config
+        const sfx = this._weaponSounds[wep.id];
+        if (sfx?.fire) {
+          const snd = sfx.fire.pool[sfx.fire.idx];
+          snd.currentTime = 0;
+          snd.play().catch(() => {});
+          sfx.fire.idx = (sfx.fire.idx + 1) % sfx.fire.pool.length;
+        }
+
         // Apply recoil knockback (opposite direction of shot)
         const kb = wep.recoil?.knockback || 0;
         if (kb > 0) {
@@ -314,6 +354,20 @@ export class Game {
     if (this.localPlayer.fireCooldown > 0) {
       this.localPlayer.fireCooldown -= dt;
     }
+
+    // Play reload sound on reload start
+    if (rawInput.reload && !this._reloading) {
+      const wep = this.weaponDefs[this.localPlayer.weapon];
+      if (wep && this.localPlayer.ammo < wep.ammo.magazineSize) {
+        this._reloading = true;
+        const sfx = this._weaponSounds[wep.id];
+        if (sfx?.reload) {
+          sfx.reload.currentTime = 0;
+          sfx.reload.play().catch(() => {});
+        }
+      }
+    }
+    if (!rawInput.reload) this._reloading = false;
 
     // Send input to server
     this.net.sendInput({
