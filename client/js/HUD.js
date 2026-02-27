@@ -8,6 +8,8 @@ export class HUD {
     this.ammoReserve = document.getElementById('ammo-reserve');
     this.killfeed = document.getElementById('hud-killfeed');
     this.leaderboard = document.getElementById('hud-leaderboard');
+    this.reloadBar = document.getElementById('reload-bar');
+    this.reloadBarFill = document.getElementById('reload-bar-fill');
     this.kills = [];
     this._lastLbHtml = '';
   }
@@ -38,6 +40,15 @@ export class HUD {
     }
     if (player.reserveAmmo !== undefined) {
       this.ammoReserve.textContent = player.reserveAmmo;
+    }
+
+    // Reload bar
+    if (player.reloadPct > 0) {
+      this.reloadBar.classList.remove('hidden');
+      this.reloadBarFill.style.width = (player.reloadPct * 100) + '%';
+    } else {
+      this.reloadBar.classList.add('hidden');
+      this.reloadBarFill.style.width = '0%';
     }
   }
 

@@ -40,10 +40,19 @@ export class Game {
 
     // Audio pools per weapon (built on _onWelcome from weapon JSON)
     this._weaponSounds = {};
+    this._reloading = false;
+    this._reloadTimer = 0;
+    this._reloadTotal = 0;
 
     // Death sound
     this._deathSound = new Audio('assets/sounds/death.mp3');
     this._deathSound.volume = 0.3;
+
+    // Jetpack sound (looping)
+    this._jetSound = new Audio('assets/sounds/jetpack.mp3');
+    this._jetSound.volume = 0.1;
+    this._jetSound.loop = true;
+    this._jetting = false;
 
     // Bind resize
     window.addEventListener('resize', () => {
@@ -182,6 +191,10 @@ export class Game {
         }
         this.localPlayer.fuel = corrected.fuel;
         this.localPlayer.hp = p.hp;
+        // Cancel reload bar when server confirms ammo refilled
+        if (p.ammo > this.localPlayer.ammo && this._reloadTimer > 0) {
+          this._reloadTimer = 0;
+        }
         this.localPlayer.ammo = p.ammo;
         this.localPlayer.reserveAmmo = p.reserveAmmo;
         this.localPlayer.state = p.state;
@@ -355,11 +368,13 @@ export class Game {
       this.localPlayer.fireCooldown -= dt;
     }
 
-    // Play reload sound on reload start
+    // Reload tracking (client-side timer for HUD)
     if (rawInput.reload && !this._reloading) {
       const wep = this.weaponDefs[this.localPlayer.weapon];
       if (wep && this.localPlayer.ammo < wep.ammo.magazineSize) {
         this._reloading = true;
+        this._reloadTimer = wep.ammo.reloadTimeMs;
+        this._reloadTotal = wep.ammo.reloadTimeMs;
         const sfx = this._weaponSounds[wep.id];
         if (sfx?.reload) {
           sfx.reload.currentTime = 0;
@@ -368,6 +383,10 @@ export class Game {
       }
     }
     if (!rawInput.reload) this._reloading = false;
+    if (this._reloadTimer > 0) {
+      this._reloadTimer -= dt * 1000;
+      if (this._reloadTimer <= 0) this._reloadTimer = 0;
+    }
 
     // Send input to server
     this.net.sendInput({
@@ -434,11 +453,19 @@ export class Game {
       this.localPlayer.x = physX;
       this.localPlayer.y = physY;
       this.renderer.markPlayerActive(this.localPlayer.id);
-      // Jetpack smoke for local player
-      if (this.localPlayer.state === PLAYER_STATE.ALIVE && this.localPlayer.jetting) {
+      // Jetpack smoke + sound for local player
+      const isJetting = this.localPlayer.state === PLAYER_STATE.ALIVE && this.localPlayer.jetting;
+      if (isJetting) {
         const facing = Math.cos(this.localPlayer.aimAngle || 0) >= 0 ? 1 : -1;
         this.particles.emitJetSmoke(renderX - facing * 8, renderY - 4);
       }
+      if (isJetting && !this._jetting) {
+        this._jetSound.currentTime = 0;
+        this._jetSound.play().catch(() => {});
+      } else if (!isJetting && this._jetting) {
+        this._jetSound.pause();
+      }
+      this._jetting = isJetting;
     }
 
     // Remove stale player graphics
@@ -480,6 +507,8 @@ export class Game {
 
     // Update HUD
     if (this.localPlayer) {
+      const reloadPct = (this._reloadTotal > 0 && this._reloadTimer > 0)
+        ? 1 - this._reloadTimer / this._reloadTotal : 0;
       this.hud.update({
         hp: this.localPlayer.hp,
         maxHP: this.localPlayer.maxHP,
@@ -487,6 +516,7 @@ export class Game {
         maxFuel: this.localPlayer.maxFuel,
         ammo: this.localPlayer.ammo,
         reserveAmmo: this.localPlayer.reserveAmmo,
+        reloadPct,
       });
       if (this.leaderboardData) {
         this.hud.updateLeaderboard(this.leaderboardData);
