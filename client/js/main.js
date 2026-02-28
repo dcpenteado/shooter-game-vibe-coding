@@ -160,11 +160,23 @@ function renderRoomList(rooms) {
     return;
   }
 
-  roomListEl.innerHTML = rooms.map(room => {
+  const sorted = [...rooms].sort((a, b) => {
+    const aFull = a.players >= a.maxPlayers;
+    const bFull = b.players >= b.maxPlayers;
+    if (aFull !== bFull) return aFull ? 1 : -1;
+    return b.players - a.players;
+  });
+
+  roomListEl.innerHTML = sorted.map(room => {
     const full = room.players >= room.maxPlayers;
-    return `<div class="room-row${full ? ' room-full' : ''}" data-room-id="${room.id}">
+    const active = room.players > 1 && !full;
+    const cls = full ? ' room-full' : active ? ' room-active' : '';
+    return `<div class="room-row${cls}" data-room-id="${room.id}">
       <span class="room-name">${escapeHtml(room.name)}</span>
-      <span class="room-players${full ? ' full' : ''}">${room.players}/${room.maxPlayers}</span>
+      <span class="room-info">
+        ${active ? '<span class="room-live-dot"></span>' : ''}
+        <span class="room-players${full ? ' full' : active ? ' active' : ''}">${room.players}/${room.maxPlayers}</span>
+      </span>
     </div>`;
   }).join('');
 

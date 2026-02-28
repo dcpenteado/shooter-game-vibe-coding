@@ -837,6 +837,25 @@ html, body {
   border-bottom: none;
 }
 
+.room-row.room-active {
+  background: rgba(76, 175, 80, 0.08);
+  border-bottom-color: rgba(76, 175, 80, 0.12);
+}
+
+.room-row.room-active::before {
+  width: 3px;
+  background: #4caf50;
+}
+
+.room-row.room-active:hover {
+  background: rgba(76, 175, 80, 0.16);
+}
+
+.room-row.room-active:hover::before {
+  width: 3px;
+  background: #4caf50;
+}
+
 .room-row.room-full {
   opacity: 0.3;
   cursor: default;
@@ -856,11 +875,40 @@ html, body {
   font-weight: 500;
 }
 
+.room-row.room-active .room-name {
+  color: rgba(255,255,255,0.95);
+}
+
+.room-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.room-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4caf50;
+  box-shadow: 0 0 6px rgba(76, 175, 80, 0.6);
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
 .room-players {
   font-size: 12px;
   color: rgba(255,255,255,0.35);
   font-variant-numeric: tabular-nums;
   font-weight: 600;
+}
+
+.room-players.active {
+  color: #4caf50;
+  font-weight: 700;
 }
 
 .room-players.full {
