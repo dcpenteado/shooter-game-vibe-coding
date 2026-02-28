@@ -50,5 +50,5 @@ export const MINE_LIFETIME = 60000;            // ms until auto-despawn
 export const MAX_PLAYERS_PER_ROOM = 16;
 
 // Networking
-export const NET_PORT = 3000;
+export const NET_PORT = 3001;
 export const INTERPOLATION_DELAY = 100;   // ms behind server time
