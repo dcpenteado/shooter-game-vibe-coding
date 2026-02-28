@@ -165,10 +165,15 @@ export class Game {
     // Ping periodically
     setInterval(() => this.net.ping(), 2000);
 
+    this._waitingFirstSnapshot = true;
     if (this.onJoinedRoom) this.onJoinedRoom();
   }
 
   _onSnapshot(snap) {
+    if (this._waitingFirstSnapshot) {
+      this._waitingFirstSnapshot = false;
+      if (this.onFirstSnapshot) this.onFirstSnapshot(snap);
+    }
     this.serverTime = snap.tick;
 
     for (const p of snap.players) {

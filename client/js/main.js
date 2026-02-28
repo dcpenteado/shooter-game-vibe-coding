@@ -198,6 +198,14 @@ game.onJoinedRoom = () => {
   });
 };
 
+game.onFirstSnapshot = (snap) => {
+  if (snap.players && snap.players.length <= 1) {
+    const popup = document.getElementById('alone-popup');
+    popup.classList.remove('hidden');
+    setTimeout(() => popup.classList.add('hidden'), 5000);
+  }
+};
+
 // --- Room UI events ---
 
 btnCreateRoom.addEventListener('click', () => {

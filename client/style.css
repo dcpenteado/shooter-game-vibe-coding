@@ -405,6 +405,32 @@ html, body {
   font-weight: 600;
 }
 
+/* Alone popup */
+#alone-popup {
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.7);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 14px;
+  color: rgba(255,255,255,0.8);
+  backdrop-filter: blur(8px);
+  white-space: nowrap;
+  animation: popupFade 3s ease forwards;
+  pointer-events: none;
+  z-index: 5;
+}
+
+@keyframes popupFade {
+  0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  10% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 /* Lobby */
 #lobby {
   position: absolute;
