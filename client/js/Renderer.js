@@ -747,29 +747,93 @@ export class Renderer {
 
     // Pulsing glow
     const glowAlpha = 0.12 + Math.sin(Date.now() * 0.004) * 0.06;
-    g.circle(x, py, 20);
+    g.circle(x, py, 30);
     g.fill({ color: glowColor, alpha: glowAlpha });
-    g.circle(x, py, 12);
+    g.circle(x, py, 18);
     g.fill({ color: glowColor, alpha: glowAlpha * 1.5 });
 
-    // Rifle body
-    const len = 24;
-    const h = 4;
-    g.roundRect(x - len / 2, py - h / 2, len, h, 2);
+    // --- Detailed sniper rifle silhouette ---
+    const s = 1.1; // overall scale
+
+    // Stock (left side — angled buttstock)
+    g.moveTo(x - 22 * s, py - 1 * s);
+    g.lineTo(x - 18 * s, py - 3 * s);
+    g.lineTo(x - 10 * s, py - 3 * s);
+    g.lineTo(x - 10 * s, py + 2 * s);
+    g.lineTo(x - 14 * s, py + 5 * s);
+    g.lineTo(x - 22 * s, py + 3 * s);
+    g.closePath();
     g.fill(bodyColor);
-    g.stroke({ width: 1, color: accentColor });
+    g.stroke({ width: 0.6, color: '#555555' });
 
-    // Stock (left side)
-    g.roundRect(x - len / 2 - 4, py - 3, 6, 6, 1);
+    // Thumbhole in stock
+    g.roundRect(x - 18 * s, py - 0.5 * s, 4 * s, 3 * s, 1);
+    g.fill({ color: '#555555', alpha: 0.35 });
+
+    // Receiver / main body
+    g.roundRect(x - 10 * s, py - 3 * s, 18 * s, 5 * s, 1);
     g.fill(bodyColor);
+    g.stroke({ width: 0.6, color: '#555555' });
 
-    // Scope (on top center)
-    g.roundRect(x - 3, py - h / 2 - 4, 10, 3, 1);
-    g.fill(accentColor);
+    // Pistol grip (below receiver)
+    g.moveTo(x - 4 * s, py + 2 * s);
+    g.lineTo(x - 2 * s, py + 2 * s);
+    g.lineTo(x - 1 * s, py + 7 * s);
+    g.lineTo(x - 5 * s, py + 8 * s);
+    g.lineTo(x - 6 * s, py + 3 * s);
+    g.closePath();
+    g.fill(bodyColor);
+    g.stroke({ width: 0.5, color: '#555555' });
 
-    // Barrel tip (right side)
-    g.rect(x + len / 2, py - 1.5, 6, 3);
-    g.fill('#555555');
+    // Trigger guard
+    g.moveTo(x - 6 * s, py + 2.5 * s);
+    g.lineTo(x - 6 * s, py + 5 * s);
+    g.lineTo(x - 1.5 * s, py + 5 * s);
+    g.lineTo(x - 1.5 * s, py + 2.5 * s);
+    g.stroke({ width: 0.5, color: '#555555' });
+
+    // Magazine (below receiver, in front of grip)
+    g.roundRect(x - 1 * s, py + 2 * s, 5 * s, 6 * s, 0.5);
+    g.fill('#333333');
+    g.stroke({ width: 0.4, color: '#555555' });
+
+    // Long barrel
+    g.roundRect(x + 8 * s, py - 2 * s, 20 * s, 3 * s, 0.5);
+    g.fill('#444444');
+    g.stroke({ width: 0.4, color: '#666666' });
+
+    // Suppressor / muzzle brake (barrel tip)
+    g.roundRect(x + 27 * s, py - 2.8 * s, 8 * s, 4.5 * s, 1.5);
+    g.fill('#3a3a3a');
+    g.stroke({ width: 0.5, color: '#555555' });
+    // Suppressor ridges
+    for (let i = 0; i < 3; i++) {
+      const rx = x + (29 + i * 2) * s;
+      g.moveTo(rx, py - 2.5 * s);
+      g.lineTo(rx, py + 1.5 * s);
+      g.stroke({ width: 0.3, color: '#555555' });
+    }
+
+    // Scope rail (on top of receiver)
+    g.roundRect(x - 8 * s, py - 3.8 * s, 14 * s, 1.2 * s, 0.3);
+    g.fill('#333333');
+
+    // Scope body
+    g.roundRect(x - 6 * s, py - 7 * s, 14 * s, 3.5 * s, 1.5);
+    g.fill('#333333');
+    g.stroke({ width: 0.5, color: bodyColor });
+
+    // Scope adjustment turret (top knob)
+    g.roundRect(x - 1 * s, py - 8.5 * s, 3 * s, 2 * s, 0.5);
+    g.fill('#333333');
+
+    // Bipod (two legs below barrel)
+    g.moveTo(x + 10 * s, py + 1 * s);
+    g.lineTo(x + 7 * s, py + 8 * s);
+    g.stroke({ width: 0.7, color: '#555555' });
+    g.moveTo(x + 12 * s, py + 1 * s);
+    g.lineTo(x + 15 * s, py + 8 * s);
+    g.stroke({ width: 0.7, color: '#555555' });
   }
 
   /** Draw a mine on the ground */
