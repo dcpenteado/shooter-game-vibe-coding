@@ -51,6 +51,12 @@ export class Game {
     this._deathSound = new Audio('assets/sounds/death.mp3');
     this._deathSound.volume = 0.3;
 
+    // Mine sounds
+    this._mineTimerSound = new Audio('assets/sounds/mine_timer.mp3');
+    this._mineTimerSound.volume = 0.5;
+    this._mineExplosionSound = new Audio('assets/sounds/mine_explosion.mp3');
+    this._mineExplosionSound.volume = 0.6;
+
     // Jetpack sound (looping)
     this._jetSound = new Audio('assets/sounds/jetpack.mp3');
     this._jetSound.volume = 0.1;
@@ -274,8 +280,14 @@ export class Game {
     if (evt.event === 'hit') {
       this.particles.emitBlood(evt.x, evt.y, evt.dirX || 0, evt.dirY || 0);
     }
+    if (evt.event === 'mine_trigger') {
+      this._mineTimerSound.currentTime = 0;
+      this._mineTimerSound.play().catch(() => {});
+    }
     if (evt.event === 'mine_explode') {
       this.particles.emitExplosion(evt.x, evt.y);
+      this._mineExplosionSound.currentTime = 0;
+      this._mineExplosionSound.play().catch(() => {});
     }
   }
 

@@ -211,6 +211,10 @@ export class ServerWorld {
             mine.state = 'triggered';
             mine.triggerTimer = MINE_ACTIVATION_DELAY;
             mine.triggeredBy = player.id;
+            this.events.push({
+              event: 'mine_trigger',
+              x: mine.x, y: mine.y
+            });
             break;
           }
         }

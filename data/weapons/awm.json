@@ -28,7 +28,7 @@
     "knockback": 400
   },
   "sound": {
-    "fire": "assets/sounds/assault_rifle.mp3",
+    "fire": "assets/sounds/awm.mp3",
     "reload": "assets/sounds/mag_reloading.mp3",
     "volume": 0.35
   },
