@@ -714,21 +714,43 @@ export class Renderer {
     const bob = Math.sin(Date.now() * 0.003) * 3;
     const py = y + bob;
 
-    // Crate body
+    // Crate body (dark green military style for contrast)
     g.rect(x - w / 2, py - h / 2, w, h);
-    g.fill('#cc9933');
-    g.stroke({ width: 1, color: '#ffcc44' });
+    g.fill('#3a5a2a');
+    g.stroke({ width: 1, color: '#6b8a3a' });
 
-    // Ammo icon (small bullet lines)
-    g.moveTo(x - 3, py - 2);
-    g.lineTo(x - 3, py + 3);
-    g.stroke({ width: 2, color: '#665522' });
-    g.moveTo(x + 1, py - 2);
-    g.lineTo(x + 1, py + 3);
-    g.stroke({ width: 2, color: '#665522' });
-    g.moveTo(x + 5, py - 2);
-    g.lineTo(x + 5, py + 3);
-    g.stroke({ width: 2, color: '#665522' });
+    // Crate cross detail
+    g.moveTo(x - w / 2 + 2, py);
+    g.lineTo(x + w / 2 - 2, py);
+    g.stroke({ width: 0.6, color: '#4a6a32' });
+    g.moveTo(x, py - h / 2 + 2);
+    g.lineTo(x, py + h / 2 - 2);
+    g.stroke({ width: 0.6, color: '#4a6a32' });
+
+    // 3 detailed bullets centered in the crate
+    const bulletOffsets = [-5, 0, 5]; // wider spacing
+    const bw = 1.2;  // bullet half-width (thinner)
+    const casH = 4;   // casing height
+    const tipH = 2.5; // tip (ogive) height
+
+    for (const ox of bulletOffsets) {
+      const bx = x + ox;
+      const bBase = py + 3;
+
+      // Brass casing
+      g.roundRect(bx - bw, bBase - casH, bw * 2, casH, 0.3);
+      g.fill('#e8c840');
+
+      // Bullet tip / ogive
+      const tipBase = bBase - casH;
+      g.moveTo(bx - bw, tipBase);
+      g.lineTo(bx - bw * 0.5, tipBase - tipH * 0.6);
+      g.lineTo(bx, tipBase - tipH);
+      g.lineTo(bx + bw * 0.5, tipBase - tipH * 0.6);
+      g.lineTo(bx + bw, tipBase);
+      g.closePath();
+      g.fill('#ee9955');
+    }
 
     // Glow effect
     g.circle(x, py, 14);

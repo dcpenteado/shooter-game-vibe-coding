@@ -171,7 +171,8 @@ html, body {
 }
 
 .ammo-icon {
-  color: #fa4;
+  width: 20px;
+  height: 20px;
 }
 
 #ammo-numbers {
