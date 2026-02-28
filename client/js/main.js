@@ -19,7 +19,83 @@ const btnCreateRoom = document.getElementById('btn-create-room');
 const btnRefresh = document.getElementById('btn-refresh');
 const roomListEl = document.getElementById('room-list');
 
-const RANDOM_NAMES = ['Rocket', 'Neko', 'Bala', 'Fogo', 'Shadow', 'Pixel', 'Batata'];
+const RANDOM_NAMES = [
+  "CaptainSplat",
+  "JetpackJesus",
+  "SgtBoomBoom",
+  "FlyingMeatball",
+  "RocketButt",
+  "GeneralOopsie",
+  "SkyChicken",
+  "BulletMagnet",
+  "CrashDummy",
+  "LtFriendlyFire",
+  "TurboNoob",
+  "KamikazKev",
+  "PvtPancake",
+  "BlastMyAss",
+  "AirborneIdiot",
+  "NoobRocket",
+  "FallingWithStyle",
+  "MajorMalfunction",
+  "JetFuelJimmy",
+  "BoomHeadshot",
+  "GravityHater",
+  "CorpseFlyer",
+  "SkyTrash",
+  "BootlegPilot",
+  "RespawnKing",
+  "MeatMissile",
+  "WastedPilot",
+  "SgtSlaughter",
+  "DeadOnArrival",
+  "OneHitWonder",
+  "ClickAndDie",
+  "ProAtDying",
+  "CampingInTheSky",
+  "LaggySoldier",
+  "AFKandDead",
+  "NotEvenClose",
+  "360NoScope",
+  "UpAndDead",
+  "OopsWrongButton",
+  "SelfDestructor",
+  "FriendlyOops",
+  "RagdollRandy",
+  "GibMaster3000",
+  "YeetSoldier",
+  "RocketSurgeon",
+  "PanicShooter",
+  "TeamKillTony",
+  "NerfMePlz",
+  "BarelySurvived",
+  "xXDeathFartXx"
+];
+
+// --- Lobby particles ---
+function createLobbyParticles() {
+  const container = document.getElementById('lobby-particles');
+  if (!container) return;
+  const PARTICLE_COUNT = 35;
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    const p = document.createElement('div');
+    p.className = 'lobby-particle';
+    const size = Math.random() * 3 + 1;
+    const isRed = Math.random() > 0.6;
+    p.style.cssText = `
+      width: ${size}px;
+      height: ${size}px;
+      left: ${Math.random() * 100}%;
+      bottom: ${-10 - Math.random() * 20}%;
+      background: ${isRed ? `rgba(255,${60 + Math.random() * 40},${40 + Math.random() * 30},${0.4 + Math.random() * 0.4})` : `rgba(180,210,255,${0.2 + Math.random() * 0.3})`};
+      box-shadow: 0 0 ${size * 2}px ${isRed ? 'rgba(255,68,68,0.3)' : 'rgba(150,200,255,0.2)'};
+      animation-duration: ${8 + Math.random() * 14}s;
+      animation-delay: ${Math.random() * 10}s;
+    `;
+    container.appendChild(p);
+  }
+}
+createLobbyParticles();
 
 const game = new Game(canvas);
 let confirmedName = '';
