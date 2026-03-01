@@ -946,9 +946,10 @@ export class Renderer {
   }
 
   /** Show or hide "R to reload" hint near the player */
-  drawReloadHint(x, y, show) {
+  drawReloadHint(x, y, show, isMobile = false) {
     if (!this.reloadHintText) return;
     if (show) {
+      this.reloadHintText.text = isMobile ? 'Tap R to reload' : 'R to reload';
       this.reloadHintText.x = x;
       this.reloadHintText.y = y + 38;
       // Gentle pulsing opacity between 0.35 and 0.55
@@ -1016,8 +1017,9 @@ export class Renderer {
   applyCamera(camera) {
     const worldLayers = ['background', 'map', 'pickups', 'remotePlayers', 'localPlayer', 'projectiles', 'particles'];
     for (const name of worldLayers) {
-      this.layers[name].x = -camera.x;
-      this.layers[name].y = -camera.y;
+      this.layers[name].x = -camera.x * camera.zoom;
+      this.layers[name].y = -camera.y * camera.zoom;
+      this.layers[name].scale.set(camera.zoom);
     }
   }
 }

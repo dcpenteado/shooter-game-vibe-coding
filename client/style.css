@@ -1022,3 +1022,391 @@ html, body {
   font-size: 11px;
   border: 1px solid rgba(255,255,255,0.06);
 }
+
+/* Mobile desktop hint */
+#mobile-hint {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.7);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 5;
+  animation: mobileHintFade 5s ease forwards;
+}
+
+@keyframes mobileHintFade {
+  0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  10% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ============================
+   TOUCH CONTROLS (mobile/tablet)
+   ============================ */
+
+#touch-controls {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* --- Virtual Joystick --- */
+#touch-joystick-zone {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 40%;
+  height: 60%;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+#touch-joystick-hint {
+  position: absolute;
+  left: 60px;
+  bottom: 80px;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 2px dashed rgba(255,255,255,0.1);
+  pointer-events: none;
+  opacity: 0.6;
+  transition: opacity 0.3s;
+}
+
+#touch-joystick-zone:active #touch-joystick-hint,
+#touch-joystick-base.active ~ #touch-joystick-hint {
+  opacity: 0;
+}
+
+#touch-joystick-base {
+  position: absolute;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  border: 2px solid rgba(255,255,255,0.12);
+  transform: translate(-50%, -50%);
+  display: none;
+  pointer-events: none;
+}
+
+#touch-joystick-base.active {
+  display: block;
+}
+
+#touch-joystick-knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 44px;
+  height: 44px;
+  margin-left: -22px;
+  margin-top: -22px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  border: 2px solid rgba(255,255,255,0.35);
+  transition: background 0.1s;
+}
+
+/* --- Touch Buttons --- */
+#touch-buttons {
+  position: absolute;
+  right: 16px;
+  bottom: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.touch-btn {
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  cursor: pointer;
+  transition: transform 0.08s, background 0.08s;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+.touch-btn.active {
+  transform: scale(0.92);
+}
+
+/* Fire button - large red */
+.touch-btn-large {
+  width: 76px;
+  height: 76px;
+  font-size: 13px;
+  background: rgba(220, 50, 50, 0.45);
+  border: 2px solid rgba(255, 80, 80, 0.5);
+  box-shadow: 0 0 20px rgba(255, 50, 50, 0.2);
+}
+.touch-btn-large.active {
+  background: rgba(255, 60, 60, 0.7);
+  box-shadow: 0 0 30px rgba(255, 50, 50, 0.5);
+}
+
+/* Jump / Jet - medium */
+.touch-btn-medium {
+  width: 56px;
+  height: 56px;
+  font-size: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+.touch-btn-medium.active {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Reload / Mine - small */
+.touch-btn-small {
+  width: 42px;
+  height: 42px;
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+}
+.touch-btn-small.active {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Layout: Fire bottom-right, Jump and Jet above, Reload and Mine top row */
+#touch-buttons {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-rows: auto auto auto;
+  gap: 8px;
+  align-items: end;
+  justify-items: center;
+}
+
+#touch-btn-reload {
+  grid-column: 1;
+  grid-row: 1;
+}
+#touch-btn-mine {
+  grid-column: 2;
+  grid-row: 1;
+}
+#touch-btn-jet {
+  grid-column: 1;
+  grid-row: 2;
+}
+#touch-btn-jump {
+  grid-column: 2;
+  grid-row: 2;
+}
+#touch-btn-fire {
+  grid-column: 1 / span 2;
+  grid-row: 3;
+  justify-self: center;
+}
+
+/* ============================
+   RESPONSIVE / MOBILE STYLES
+   ============================ */
+
+/* Mobile: adjust HUD positioning to avoid touch controls overlap */
+@media (pointer: coarse), (max-width: 768px) {
+  /* Lobby panel responsive */
+  #lobby-panel {
+    width: 92vw;
+    max-width: 460px;
+    padding: 28px 20px 24px;
+  }
+
+  #lobby h1 {
+    font-size: 32px;
+    letter-spacing: 6px;
+  }
+
+  #lobby-subtitle {
+    font-size: 9px;
+    letter-spacing: 4px;
+  }
+
+  #player-name {
+    width: 200px;
+    font-size: 16px;
+    padding: 10px 14px;
+  }
+
+  #btn-confirm-name {
+    padding: 10px 36px;
+    font-size: 14px;
+  }
+
+  /* Hide desktop controls info on mobile */
+  #controls-info {
+    display: none;
+  }
+
+  /* HUD adjustments */
+  #hud-bottom-left {
+    bottom: 12px;
+    left: 12px;
+  }
+
+  #hud-health {
+    width: 120px;
+    height: 12px;
+  }
+
+  #hud-fuel {
+    width: 90px;
+    height: 6px;
+  }
+
+  #hud-bottom-right {
+    bottom: 12px;
+    right: 120px; /* shift left to avoid fire button */
+  }
+
+  #ammo-current {
+    font-size: 18px;
+  }
+
+  #ammo-reserve {
+    font-size: 11px;
+  }
+
+  #hud-leaderboard {
+    top: 8px;
+    left: 8px;
+    padding: 4px 8px;
+    min-width: 120px;
+  }
+
+  .lb-row {
+    font-size: 10px;
+    gap: 4px;
+  }
+
+  .lb-name {
+    max-width: 60px;
+  }
+
+  #hud-killfeed {
+    top: 8px;
+    right: 8px;
+  }
+
+  .kill-entry {
+    font-size: 10px;
+    padding: 3px 6px;
+  }
+
+  /* Hide mine key hint on mobile (has button instead) */
+  #mine-key {
+    display: none;
+  }
+
+  #hud-ammo {
+    padding: 14px 8px 4px;
+  }
+
+  #weapon-name {
+    font-size: 8px;
+  }
+
+  /* Canvas cursor visible on mobile */
+  #game-canvas {
+    cursor: default;
+  }
+
+  /* Alone popup smaller */
+  #alone-popup {
+    font-size: 12px;
+    padding: 8px 16px;
+    top: 50px;
+  }
+}
+
+/* Extra small screens (phones) */
+@media (max-width: 480px) {
+  #lobby-panel {
+    padding: 20px 16px 18px;
+  }
+
+  #lobby h1 {
+    font-size: 24px;
+    letter-spacing: 4px;
+  }
+
+  #player-name {
+    width: 160px;
+    font-size: 14px;
+  }
+
+  .touch-btn-large {
+    width: 64px;
+    height: 64px;
+    font-size: 11px;
+  }
+
+  .touch-btn-medium {
+    width: 46px;
+    height: 46px;
+    font-size: 9px;
+  }
+
+  .touch-btn-small {
+    width: 36px;
+    height: 36px;
+    font-size: 9px;
+  }
+
+  #touch-buttons {
+    right: 10px;
+    bottom: 70px;
+    gap: 6px;
+  }
+
+  #hud-bottom-right {
+    right: 90px;
+  }
+}
+
+/* Safe area for notched devices */
+@supports (padding: env(safe-area-inset-bottom)) {
+  #hud-bottom-left {
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+  }
+
+  #hud-bottom-right {
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  #touch-buttons {
+    margin-bottom: env(safe-area-inset-bottom);
+    margin-right: env(safe-area-inset-right);
+  }
+
+  #touch-joystick-zone {
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+  }
+}

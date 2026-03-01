@@ -17,6 +17,9 @@ export class Game {
     this.renderer = new Renderer();
     this.input = new InputHandler(canvas);
     this.camera = new Camera(window.innerWidth, window.innerHeight);
+    if (this.input.isMobile) {
+      this.camera.zoom = 0.5;
+    }
     this.net = new NetworkClient();
     this.prediction = new Prediction();
     this.interpolation = new Interpolation();
@@ -154,6 +157,18 @@ export class Game {
 
     // Show HUD
     this.hud.show();
+
+    // Show touch controls on mobile
+    if (this.input.isMobile && this.input.touch) {
+      this.input.touch.show();
+
+      // Show desktop recommendation message
+      const msg = document.createElement('div');
+      msg.id = 'mobile-hint';
+      msg.textContent = 'The gaming experience is much better on desktop';
+      document.getElementById('hud').appendChild(msg);
+      setTimeout(() => msg.remove(), 5000);
+    }
 
     // Start game loop
     if (!this.running) {
@@ -304,6 +319,9 @@ export class Game {
   _onDisconnect() {
     this.running = false;
     this.hud.hide();
+    if (this.input.isMobile && this.input.touch) {
+      this.input.touch.hide();
+    }
     document.getElementById('lobby').style.display = 'flex';
     document.getElementById('step-name').classList.remove('hidden');
     document.getElementById('step-rooms').classList.add('hidden');
@@ -346,11 +364,27 @@ export class Game {
     // Get input
     const rawInput = this.input.getInput(this.camera.x, this.camera.y);
 
-    // Calculate aim angle from player position to mouse world position
-    const aimAngle = Math.atan2(
-      rawInput.mouseWorldY - (this.localPlayer.y - 10),
-      rawInput.mouseWorldX - this.localPlayer.x
-    );
+    // Calculate aim angle
+    let aimAngle;
+    if (this.input.isMobile) {
+      // Mobile: aim follows joystick direction
+      const tc = this.input.touch;
+      const jx = tc.joystickX;
+      const jy = tc.joystickY;
+      const deadzone = 0.2;
+      if (Math.abs(jx) > deadzone || Math.abs(jy) > deadzone) {
+        // Joystick is active: aim in joystick direction
+        this._lastMobileAimAngle = Math.atan2(jy, jx);
+      }
+      // Use last known angle (defaults to facing right)
+      aimAngle = this._lastMobileAimAngle ?? 0;
+    } else {
+      // Desktop: aim toward mouse world position
+      aimAngle = Math.atan2(
+        rawInput.mouseWorldY - (this.localPlayer.y - 10),
+        rawInput.mouseWorldX - this.localPlayer.x
+      );
+    }
     rawInput.aimAngle = aimAngle;
     this.localPlayer.aimAngle = aimAngle;
     this.localPlayer.moveDir = rawInput.moveDir;
@@ -510,11 +544,11 @@ export class Game {
       }
       this._jetting = isJetting;
 
-      // "R to reload" hint when magazine is empty and not reloading
+      // Reload hint when magazine is empty and not reloading
       const showReloadHint = this.localPlayer.state !== 1
         && this.localPlayer.ammo === 0
         && this._reloadTimer <= 0;
-      this.renderer.drawReloadHint(renderX, renderY, showReloadHint);
+      this.renderer.drawReloadHint(renderX, renderY, showReloadHint, this.input.isMobile);
     }
 
     // Remove stale player graphics
@@ -561,8 +595,10 @@ export class Game {
     this.particles.draw(this.renderer);
     this.ragdolls.draw(this.renderer);
 
-    // Draw crosshair at mouse screen position
-    this.renderer.drawCrosshair(this.input.mouseX, this.input.mouseY);
+    // Draw crosshair (desktop only — mobile aims via joystick)
+    if (!this.input.isMobile) {
+      this.renderer.drawCrosshair(this.input.mouseX, this.input.mouseY);
+    }
 
     // Update HUD
     if (this.localPlayer) {

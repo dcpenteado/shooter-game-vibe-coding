@@ -203,11 +203,23 @@ game.onRoomListUpdate = (data) => {
 
 game.onJoinedRoom = () => {
   lobby.style.display = 'none';
-  canvas.addEventListener('click', () => {
-    if (!document.pointerLockElement) {
-      canvas.requestPointerLock();
+
+  if (game.input.isMobile) {
+    // On mobile, request fullscreen for better immersion
+    const el = document.documentElement;
+    if (el.requestFullscreen) {
+      el.requestFullscreen().catch(() => {});
+    } else if (el.webkitRequestFullscreen) {
+      el.webkitRequestFullscreen();
     }
-  });
+  } else {
+    // On desktop, use pointer lock for mouse capture
+    canvas.addEventListener('click', () => {
+      if (!document.pointerLockElement) {
+        canvas.requestPointerLock();
+      }
+    });
+  }
 };
 
 game.onFirstSnapshot = (snap) => {
